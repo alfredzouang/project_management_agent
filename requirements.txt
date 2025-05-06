@@ -1,0 +1,7 @@
+openai
+python-dotenv
+autogen-agentchat
+autogen-ext[openai, azure, web-surfer]
+autogenstudio
+
+semantic-kernel

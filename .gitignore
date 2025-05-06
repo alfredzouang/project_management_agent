@@ -1,0 +1,28 @@
+# Python cache files and directories
+__pycache__/
+*.py[cod]
+
+# Virtual environment directories
+venv/
+env/
+.venv/
+.env
+
+# Distribution/build directories
+build/
+dist/
+
+# IDE/editor specific files
+.vscode/
+.idea/
+
+# Log files and other temporary files
+*.log
+*.tmp
+
+# All test files
+test_notebook/
+.github/
+
+data/
+*.db
