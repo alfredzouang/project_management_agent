@@ -1,4 +1,5 @@
-from typing import List, Dict, Any, Optional, Union, Literal, Enum
+from typing import List, Dict, Any, Optional, Union, Literal
+from click import Option
 from pydantic import BaseModel, Field
 
 
@@ -35,17 +36,15 @@ class Project(BaseModel):
     estimated_total_cost: Optional[float] = None
     actual_total_cost: Optional[float] = None
     cost_consumption_percentage: Optional[float] = None
-    project_type: ProjectType
+    project_type: str
     sow_expriation_date: Optional[str] = None
     kick_off_partner_completed_and_minutes_published_date: Optional[str] = None
     kick_off_internal_completed_and_minutes_published_date: Optional[str] = None
     kick_off_customer_completed_and_minutes_published_date: Optional[str] = None
-    owner: str
-    project_manager: str
+    owner: Optional[str] = None
+    project_manager: Optional[str] = None
     project_coordinator: Optional[str] = None
     solution_architect: Optional[str] = None
-    tags: List[str] = Field(default_factory=list)
-    metadata: Dict[str, Any] = Field(default_factory=dict)
 
 class ProjectTask(BaseModel):
     """Project Task Model
@@ -57,10 +56,10 @@ class ProjectTask(BaseModel):
     id: str
     task_name: str
     task_description: str
-    project: Project
-    parent_task: Optional['ProjectTask'] = None
-    child_tasks: Optional[List['ProjectTask']] = None
-    dependent_task: Optional[List['ProjectTask']] = None
+    project_id: str
+    parent_task: Optional[str] = None
+    child_tasks: Optional[List[str]] = None
+    dependent_task: Optional[List[str]] = None
     estimated_effort_in_hours: Optional[float] = None
     status_reason: str
     outline_level: int
