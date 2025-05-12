@@ -1,32 +1,23 @@
-import asyncio
-from json import load
 import json
 import logging
 from enum import Enum
-from typing import ClassVar, List, Dict, Any, Optional, Union, Literal
+from typing import ClassVar, List
 
-from numpy import isin
-from openai import project
 from pydantic import BaseModel, Field
-
 from semantic_kernel import Kernel
-from semantic_kernel.contents import ChatHistory, ChatMessageContent
-from semantic_kernel.core_plugins.time_plugin import TimePlugin
-from semantic_kernel.agents import OpenAIResponsesAgent
+from semantic_kernel.connectors.ai.chat_completion_client_base import \
+    ChatCompletionClientBase
+from semantic_kernel.connectors.ai.open_ai import \
+    AzureChatPromptExecutionSettings
+from semantic_kernel.contents import ChatHistory
 from semantic_kernel.functions import kernel_function
-from semantic_kernel.processes import ProcessBuilder
-from semantic_kernel.processes.kernel_process import (
-    KernelProcess,
-    KernelProcessEvent,
-    KernelProcessEventVisibility,
-    KernelProcessStep,
-    KernelProcessStepContext,
-    KernelProcessStepState,
-)
-from semantic_kernel.processes.local_runtime.local_kernel_process import start as start_local_process
-from semantic_kernel.connectors.ai.open_ai import AzureChatCompletion, AzureChatPromptExecutionSettings
-from semantic_kernel.connectors.ai.chat_completion_client_base import ChatCompletionClientBase
-from model.project_types import Project, ProjectTask, ProjectPlan, Resource, ProjectType
+from semantic_kernel.processes.kernel_process import (KernelProcessStep,
+                                                      KernelProcessStepContext,
+                                                      KernelProcessStepState)
+
+from model.project_types import Project, ProjectTask
+
+logger = logging.getLogger(__name__)
 
 
 class ReviewTaskState(BaseModel):
@@ -90,7 +81,7 @@ class ReviewTaskStep(KernelProcessStep[ReviewTaskState]):
 
     @kernel_function(name=Functions.REVIEW_TASK.value)
     async def review_task(self, context: KernelProcessStepContext, payload: dict, kernel: Kernel):
-        print("Reviewing task...")
+        logger.info("Reviewing task...")
         
         task_list = payload.get("task_list", [])
         project = payload.get("project", None)
@@ -117,8 +108,8 @@ class ReviewTaskStep(KernelProcessStep[ReviewTaskState]):
 
         response: ReviewTaskResponse = ReviewTaskResponse.model_validate_json(response.content)
 
-        print(f"Suggestion: {response.suggestion}")
-        print(f"Need revision: {response.need_revision}")
+        logger.info(f"Suggestion: {response.suggestion}")
+        logger.info(f"Need revision: {response.need_revision}")
         if response.need_revision:
             await context.emit_event(process_event=self.OutputEvents.TASK_NEEDS_REVISION, data=response)
         else:

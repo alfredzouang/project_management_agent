@@ -1,49 +1,50 @@
-# Project Output
+# Project Overview
 
-## Project Description
-**Project Name:** SnakeEatEggsGameProject  
-**Description:** This project is about creating a snake eat eggs game, encompassing aspects of game design, mechanics development, asset creation, integration, testing, and refinement. The project is a software development endeavor scheduled to span from May 8, 2024, to July 8, 2024.  
+## Project Name: SnakeEatEggsGameProject
 
-## Task List Table
+**Project Description:**  
+The SnakeEatEggs game project revolves around creating a dynamic and engaging game where players control a snake to navigate a play area, collect eggs, and achieve high scores. The game will include well-designed gameplay mechanics, an intuitive user interface, and thorough testing to ensure a seamless user experience.
 
-| id       | name                      | description                                                                 | outline_level | dependent_tasks    | parent_task | child_tasks        | status              | estimated_effort_in_hours |
-|----------|---------------------------|-----------------------------------------------------------------------------|---------------|--------------------|-------------|--------------------|---------------------|----------------------------|
-| task_1   | Game Design Document Creation | Create a comprehensive game design document outlining gameplay mechanics, rules, and objectives. | 1             | null               | null        | task_2, task_3    | Initial planning phase | 20                      |
-| task_2   | Game Mechanics Design      | Design the core mechanics of the snake and egg interaction.                | 2             | task_1             | task_1      | null              | Detailed mechanics design | 30                      |
-| task_3   | Game Art Design            | Create the visual assets for the game, including the snake, eggs, and background. | 2          | task_1             | task_1      | task_4            | Art asset creation  | 40                      |
-| task_4   | Animation Development      | Develop animations for the snake and egg interactions.                     | 3             | task_3             | task_3      | null              | Animation creation  | 25                      |
-| task_5a  | Game Mechanics Integration | Integrate the designed game mechanics into the game engine.                | 1             | task_2             | null        | null              | Mechanics integration phase | 25                      |
-| task_5b  | Visual Asset Integration   | Integrate the visual assets and animations into the game engine.           | 1             | task_3, task_4     | null        | null              | Asset integration phase | 25                      |
-| task_6   | Collision Detection Implementation | Develop the collision detection system for the snake and eggs.           | 1             | task_5a            | null        | null              | Collision system development | 20                      |
-| task_7   | Score and Level System     | Implement the scoring and level progression system.                        | 1             | task_5a            | null        | null              | Scoring system development | 30                      |
-| task_8a  | Unit Testing               | Perform unit testing on individual components of the game.                 | 1             | task_5a, task_5b   | null        | null              | Component testing phase | 15                      |
-| task_8b  | Integration Testing        | Test the integration of game mechanics and visual assets.                  | 1             | task_8a            | null        | null              | System integration testing | 15                      |
-| task_8c  | User Acceptance Testing    | Conduct user acceptance testing to ensure gameplay meets expectations.     | 1             | task_8b            | null        | null              | Gameplay validation | 10                      |
+---
 
-## Task Gantt Diagram
+# Task List Table
+
+| **ID**       | **Name**                     | **Description**                                                               | **Outline Level** | **Dependent Tasks**             | **Parent Task** | **Child Tasks**          | **Status**      | **Estimated Effort (Hours)** |
+|--------------|------------------------------|-------------------------------------------------------------------------------|-------------------|---------------------------------|-----------------|-------------------------|-----------------|------------------------------|
+| task_1       | Game Design Document Creation | Create a comprehensive game design document outlining gameplay mechanics, objectives, and user interface. | 1                 | None                            | None            | task_2, task_3          | Initial design phase | 20.0                        |
+| task_2       | Game Mechanics Design        | Design the core mechanics of the snake movement and egg collection.          | 2                 | task_1                         | task_1          | task_4, task_5          | Detailed mechanics design | 30.0                        |
+| task_3       | User Interface Design        | Design the user interface including menus, score display, and game over screen. | 2              | task_1                         | task_1          | task_6, task_7          | UI design phase | 25.0                        |
+| task_4       | Implement Snake Movement     | Develop the snake movement mechanics as per the design.                      | 3                 | task_2                         | task_2          | None                    | Development phase | 20.0                        |
+| task_5       | Implement Egg Collection     | Develop the egg collection mechanics as per the design.                      | 3                 | task_2                         | task_2          | None                    | Development phase | 20.0                        |
+| task_6       | Develop Main Menu            | Create the main menu interface for the game.                                 | 3                 | task_3                         | task_3          | None                    | Development phase | 15.0                        |
+| task_7       | Develop Score Display        | Create the score display interface for the game.                             | 3                 | task_3                         | task_3          | None                    | Development phase | 20.0                        |
+| task_8       | Game Testing                 | Test the game for bugs, gameplay issues, and user experience.                | 1                 | task_4, task_5, task_6, task_7 | None            | None                    | Testing phase | 30.0                        |
+
+---
+
+# Task Gantt Diagram
 
 ```mermaid
 gantt
     dateFormat  YYYY-MM-DD
-    title       SnakeEatEggs Game Development Timeline
+    title       SnakeEatEggsGameProject Timeline
     excludes    weekends
-    
-    section Design Phase
-    Game Design Document Creation :done, task_1, 2024-05-08, 4d
-    Game Mechanics Design         :done, task_2, after task_1, 6d
-    Game Art Design               :done, task_3, after task_1, 8d
-    Animation Development         :done, task_4, after task_3, 5d
 
-    section Integration Phase
-    Game Mechanics Integration    :active, task_5a, after task_2, 6d
-    Visual Asset Integration      :active, task_5b, after task_3 task_4, 8d
-    
-    section Development Phase
-    Collision Detection Implementation :task_6, after task_5a, 5d
-    Score and Level System             :task_7, after task_5a, 6d
+    section Game Design
+    Game Design Document Creation     :done, task_1, 2024-05-08, 5d
 
-    section Testing Phase
-    Unit Testing                  :task_8a, after task_5a task_5b, 3d
-    Integration Testing           :task_8b, after task_8a, 3d
-    User Acceptance Testing       :task_8c, after task_8b, 2d
-```
+    section Game Mechanics Design
+    Design Core Mechanics             :active, task_2, after task_1, 7d
+    Implement Snake Movement          :active, task_4, after task_2, 5d
+    Implement Egg Collection          :active, task_5, after task_2, 5d
+
+    section User Interface Design
+    Design User Interface             :active, task_3, after task_1, 6d
+    Develop Main Menu                 :active, task_6, after task_3, 4d
+    Develop Score Display             :active, task_7, after task_3, 5d
+
+    section Finalization
+    Game Testing                      :task_8, after task_4 task_5 task_6 task_7, 10d
+``` 
+
+This structure provides a clear project roadmap, highlighting task dependencies, outline levels, estimated effort, and the overall timeline using a Gantt chart.

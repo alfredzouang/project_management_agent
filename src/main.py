@@ -24,8 +24,9 @@ load_dotenv(override=True)
 logging.basicConfig(
     format="[%(asctime)s - %(name)s:%(lineno)d - %(levelname)s] %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S",
+    level=logging.INFO
 )
-logging.getLogger("kernel").setLevel(logging.DEBUG)
+logging.getLogger("kernel").setLevel(logging.INFO)
 
 AZURE_OPENAI_API_KEY = os.getenv("AZURE_OPENAI_API_KEY")
 AZURE_OPENAI_ENDPOINT = os.getenv("AZURE_OPENAI_ENDPOINT")
@@ -33,7 +34,6 @@ AZURE_OPENAI_API_VERSION = os.getenv("AZURE_OPENAI_API_VERSION")
 AZURE_OPENAI_API_MODEL = os.getenv("AZURE_OPENAI_API_MODEL")
 
 async def main():
-    logging.basicConfig(level=logging.DEBUG)
 
     project: Project = Project(
         name="SnakeEatEggsGameProject",
@@ -64,17 +64,13 @@ async def main():
         ),
     ) as process_context:
         process_state = await process_context.get_state()
-        print(f"Process state: {process_state}")
-        for s in process_state.steps:
-            print(s.state.name)
         output_step_state: KernelProcessStepState[GenerateOutputState] = next(
             (s.state for s in process_state.steps if s.state.name == GenerateOutputStep.GENERATE_OUTPUT), None
         )
         if output_step_state:
-            # print(f"Output step state: {output_step_state}")
-            print(f"Output: {output_step_state.state.output}")
+            logging.info(f"Output: {output_step_state.state.output}")
         else:
-            print("Output step state not found")
+            logging.info("Output step state not found")
 
 if __name__ == "__main__":
     asyncio.run(main())

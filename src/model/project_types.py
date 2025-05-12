@@ -64,6 +64,15 @@ class ProjectTask(BaseModel):
     status_reason: str
     outline_level: int
     assigned_to: Optional[str]
+    required_skills: Optional[List[str]] = None
+
+    status: Optional[Literal["Not Started",
+                            "In Progress",
+                            "Completed",
+                            "Blocked",
+                            "Delayed",
+                            "On Hold",
+                            "Cancelled"]] = None
 
 class Resource(BaseModel):
     """Resource model

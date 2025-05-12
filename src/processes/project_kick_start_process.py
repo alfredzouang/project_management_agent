@@ -36,7 +36,10 @@ def build_process() -> KernelProcess:
     create_task.on_event(CreateProjectTaskStep.OutputEvents.TASK_CREATED).send_event_to(target=review_task, parameter_name="payload")
     create_task.on_event(CreateProjectTaskStep.OutputEvents.TASK_REVISED).send_event_to(target=review_task, parameter_name="payload")
     review_task.on_event(ReviewTaskStep.OutputEvents.TASK_NEEDS_REVISION).send_event_to(target=create_task, parameter_name="payload", function_name=CreateProjectTaskStep.Functions.REVISE_TASK.value)
-    review_task.on_event(ReviewTaskStep.OutputEvents.TASK_REVIEW_PASSED).send_event_to(target=generate_output, parameter_name="payload")
+    review_task.on_event(ReviewTaskStep.OutputEvents.TASK_REVIEW_PASSED).send_event_to(target=generate_output, parameter_name="payload", function_name=GenerateOutputStep.Functions.GENERATE_OUTPUT.value)
+    generate_output.on_event(GenerateOutputStep.OutputEvents.OUTPUT_GENERATED).send_event_to(target=generate_output, parameter_name="payload", function_name=GenerateOutputStep.Functions.REVIEW_OUTPUT.value)
+    generate_output.on_event(GenerateOutputStep.OutputEvents.OUTPUT_REJECTED).send_event_to(target=generate_output, parameter_name="payload", function_name=GenerateOutputStep.Functions.GENERATE_OUTPUT.value)
+
 
     return builder.build()
 

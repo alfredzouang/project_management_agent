@@ -1,34 +1,29 @@
-import asyncio
-from json import load
 import json
 import logging
 from enum import Enum
-from pyclbr import Class
-from typing import ClassVar, List, Dict, Any, Optional, Union, Literal
+from typing import ClassVar, List
 
-from numpy import isin
-from openai import project
 from pydantic import BaseModel, Field
-
 from semantic_kernel import Kernel
-from semantic_kernel.contents import ChatHistory, ChatMessageContent
-from semantic_kernel.core_plugins.time_plugin import TimePlugin
-from semantic_kernel.agents import OpenAIResponsesAgent
+from semantic_kernel.connectors.ai.chat_completion_client_base import \
+    ChatCompletionClientBase
+from semantic_kernel.connectors.ai.open_ai import \
+    AzureChatPromptExecutionSettings
+from semantic_kernel.contents import ChatHistory
 from semantic_kernel.functions import kernel_function
-from semantic_kernel.processes import ProcessBuilder
-from semantic_kernel.processes.kernel_process import (
-    KernelProcess,
-    KernelProcessEvent,
-    KernelProcessEventVisibility,
-    KernelProcessStep,
-    KernelProcessStepContext,
-    KernelProcessStepState,
-)
-from semantic_kernel.processes.local_runtime.local_kernel_process import start as start_local_process
-from semantic_kernel.connectors.ai.open_ai import AzureChatCompletion, AzureChatPromptExecutionSettings
-from semantic_kernel.connectors.ai.chat_completion_client_base import ChatCompletionClientBase
-from model.project_types import Project, ProjectTask, ProjectPlan, Resource, ProjectType
+from semantic_kernel.processes.kernel_process import (KernelProcessStep,
+                                                      KernelProcessStepContext,
+                                                      KernelProcessStepState)
 
+from model.project_types import Project, ProjectTask
+
+from datetime import datetime
+import os
+
+
+logger = logging.getLogger(__name__)
+
+OUTPUT_PATH = os.environ.get("OUTPUT_PATH", "./output")
 
 class GenerateOutputState(BaseModel):
 
@@ -38,6 +33,9 @@ class GenerateOutputState(BaseModel):
     project: Project | None = None
     output: str | None = None
 
+class OutputReviewResponse(BaseModel):
+    need_revision: bool
+    suggestion: str | None = None
 
 class GenerateOutputStep(KernelProcessStep[GenerateOutputState]):
 
@@ -47,9 +45,13 @@ class GenerateOutputStep(KernelProcessStep[GenerateOutputState]):
 
     class Functions(Enum):
         GENERATE_OUTPUT = "GenerateOutput"
+        REVIEW_OUTPUT = "ReviewOutput"
 
     class OutputEvents(Enum):
         OUTPUT_GENERATED = "OutputGenerated"
+        OUTPUT_APPROVED = "OutputApproved"
+        OUTPUT_REJECTED = "OutputRejected"
+
 
     system_prompt: ClassVar[str] = """
     # ROLE
@@ -72,8 +74,9 @@ class GenerateOutputStep(KernelProcessStep[GenerateOutputState]):
         - dependent_tasks
         - parent_task
         - child_tasks
-        - status
         - estimated_effort_in_hours
+        - status
+        - required_skills
         6. The task list gantt diagram should be in mermaid format.
 
         # MERMAID SYNTAX FOR GANTT DIAGRAM
@@ -134,6 +137,7 @@ class GenerateOutputStep(KernelProcessStep[GenerateOutputState]):
                 "project": project
             })
         )
+        project: Project = Project.model_validate(project)
         chat_service, settings = kernel.select_ai_service(
             type=ChatCompletionClientBase)
         assert isinstance(chat_service, ChatCompletionClientBase)
@@ -142,9 +146,61 @@ class GenerateOutputStep(KernelProcessStep[GenerateOutputState]):
         response = await chat_service.get_chat_message_content(chat_history=self.state.chat_history, settings=settings)
 
         response: str = response.content
-        print(f"Markdown: {response}")
-        with open('./output.md', 'w', encoding='utf-8') as f:
+        logger.info(f"Markdown: {response}")
+        # 动态生成输出路径
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        project_name = project.name if project and project.name else "default_project"
+        output_path = os.path.join(OUTPUT_PATH, f"{project_name}_{timestamp}")
+
+        if not os.path.exists(output_path):
+            os.makedirs(output_path)
+
+        # 保存响应到文件
+        output_file = os.path.join(output_path, "output.md")
+        with open(output_file, 'w', encoding='utf-8') as f:
             f.write(response)
-        f.close()
+        
         self.state.output = response
-        # return response
+
+        await context.emit_event(process_event=self.OutputEvents.OUTPUT_GENERATED, data=payload)
+
+        
+    @kernel_function(name=Functions.REVIEW_OUTPUT.value)
+    async def review_output(self, context: KernelProcessStepContext, payload: dict, kernel: Kernel):
+        logger.info("Reviewing output...")
+        output_markdown = self.state.output
+        if not output_markdown:
+            raise ValueError("Review is required.")
+        self.state.chat_history.add_user_message(
+            """
+            Here is the output generated:
+            {output_markdown}
+            Please review the output and provide your feedback.
+            Check the following points:
+            1. Is the output in markdown format?
+            2. Are task dependencies correct?
+            3. Are the task dates correct?
+            3. Are the mermaid diagrams correct?
+
+            # OUTPUT FORMAT
+            {output_format}
+            """.format(
+                output_markdown=output_markdown,
+                output_format=json.dumps(OutputReviewResponse.model_json_schema(), indent=2)
+            )
+        )
+        chat_service, settings = kernel.select_ai_service(type=ChatCompletionClientBase)
+        assert isinstance(chat_service, ChatCompletionClientBase)
+        assert isinstance(settings, AzureChatPromptExecutionSettings)
+        settings.response_format = OutputReviewResponse
+        settings.temperature = 0.0
+        settings.max_tokens = 2000
+
+        response = await chat_service.get_chat_message_content(chat_history=self.state.chat_history, settings=settings)
+        logger.info(f"Review response: {response.content}")
+        formatted_response: OutputReviewResponse = OutputReviewResponse.model_validate_json(response.content)
+
+        if not formatted_response.need_revision:
+            await context.emit_event(process_event=self.OutputEvents.OUTPUT_REJECTED, data=formatted_response.model_dump())
+        else:
+            await context.emit_event(process_event=self.OutputEvents.OUTPUT_APPROVED, data=formatted_response.model_dump())
