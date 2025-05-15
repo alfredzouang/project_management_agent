@@ -19,6 +19,8 @@ from processes.project_kick_start_process import (
 from processes.steps.generate_output_step import (GenerateOutputState,
                                                   GenerateOutputStep)
 from plugins.mermaid_plugin import MermaidPlugin
+from semantic_kernel.connectors.mcp import MCPSsePlugin
+
 from rich.logging import RichHandler
 
 load_dotenv(override=True)
@@ -57,9 +59,17 @@ async def main():
         service_id=service_id
     ))
     mermaid_plugin = MermaidPlugin(kernel)
-
+    resource_plugin = MCPSsePlugin(
+        name="ResourceServerPlugin",
+        description="""
+This plugin provides tools for managing resources in a project.
+""",
+        url="http://localhost:9001/sse"
+    )
+    await resource_plugin.connect()
     kernel.add_plugin(mermaid_plugin)
-    
+    kernel.add_plugin(resource_plugin)
+
     process = build_process()
     async with await start_local_process(
         process = process,
@@ -78,6 +88,8 @@ async def main():
             logging.info(f"Output: {output_step_state.state.output}")
         else:
             logging.info("Output step state not found")
+    
+    await resource_plugin.close()
 
 if __name__ == "__main__":
     asyncio.run(main())

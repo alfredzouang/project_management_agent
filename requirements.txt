@@ -6,3 +6,4 @@ autogenstudio
 markdown-pdf
 semantic-kernel
 rich
+fastmcp
