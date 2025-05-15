@@ -26,12 +26,18 @@ from rich.logging import RichHandler
 load_dotenv(override=True)
 
 # Set the logging level for  semantic_kernel.kernel to DEBUG.
+
 logging.basicConfig(
     format="[%(asctime)s - %(name)s:%(lineno)d - %(levelname)s] %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S",
     level=logging.INFO,
-    handlers=[RichHandler()]
+    handlers=[RichHandler(), logging.FileHandler("kernel.log", mode='a', encoding='utf-8', delay=False)],
+    filename="kernel.log",
+    filemode="a"
 )
+
+# Add the handler to the logger
+
 logging.getLogger("kernel").setLevel(logging.INFO)
 
 AZURE_OPENAI_API_KEY = os.getenv("AZURE_OPENAI_API_KEY")
@@ -67,8 +73,8 @@ This plugin provides tools for managing resources in a project.
         url="http://localhost:9001/sse"
     )
     await resource_plugin.connect()
-    kernel.add_plugin(mermaid_plugin)
-    kernel.add_plugin(resource_plugin)
+    kernel.add_plugin(mermaid_plugin, plugin_name="mermaid_plugin")
+    kernel.add_plugin(resource_plugin, plugin_name="resource_plugin")
 
     process = build_process()
     async with await start_local_process(

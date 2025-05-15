@@ -7,6 +7,18 @@ from semantic_kernel.connectors.ai.open_ai import \
 from semantic_kernel.contents import ChatHistory
 from semantic_kernel.functions import kernel_function
 from typing import Annotated
+from rich.logging import RichHandler
+
+import logging
+logging.basicConfig(
+    format="[%(asctime)s - %(name)s:%(lineno)d - %(levelname)s] %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+    level=logging.INFO,
+    handlers=[RichHandler()]
+)
+logging.getLogger("kernel").setLevel(logging.INFO)
+
+logger = logging.getLogger(__name__)
 
 class MermaidPlugin:
 
@@ -57,6 +69,18 @@ class MermaidPlugin:
     Describe gantt syntax               :after doc1, 3d
     Add gantt diagram to demo page      :20h
     Add another diagram to demo page    :48h
+
+    # Explanation:
+        1. The `gantt` keyword indicates that this is a gantt chart.
+        2. The `dateFormat` specifies the format of the dates used in the chart.
+        3. The `title` is the title of the gantt chart.
+        4. The `excludes` line allows you to specify which days should be excluded from the chart, such as weekends.
+        5. The `section` keyword is used to define different sections in the gantt chart.
+        6. Each task is defined with a name, status (like `done`, `active`, or no status), and a time frame.
+        7. Each task can have multiple dependencies, use `after` to specify that a task should start after another task is completed.
+        8. If a task has multiple dependencies, you can list them all after the `after` keyword using space as a separator. Like `after des1 des2`.
+        9. The `milestone` keyword is used to indicate a significant point in the project timeline.
+        10. If a task is critical, you can use the `crit` keyword to indicate that it is a critical task. Critical tasks are usually tasks that must be completed on time to avoid delaying the project.
         """
 
     def __init__(self, kernel: Annotated[Kernel | None, "The kernel", {"include_in_function_choices": False}] = None):
@@ -67,7 +91,9 @@ class MermaidPlugin:
         name="MermaidFunction"
     )
     async def create_mermaid_diagram(self, text: str) -> str:
-
+        logger.info(f"Creating mermaid diagram for text: {text}")
+        if not text:
+            return "Please provide a valid text description to create a mermaid diagram."
         chat_service, settings = self.kernel.select_ai_service(
             type=ChatCompletionClientBase)
         assert isinstance(chat_service, ChatCompletionClientBase)

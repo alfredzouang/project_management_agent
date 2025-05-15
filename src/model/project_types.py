@@ -63,7 +63,7 @@ class ProjectTask(BaseModel):
     estimated_effort_in_hours: Optional[float] = None
     status_reason: str
     outline_level: int
-    assigned_to: Optional[str]
+    assigned_to: Resource | None = None
     required_skills: Optional[List[str]] = None
 
     status: Optional[Literal["Not Started",

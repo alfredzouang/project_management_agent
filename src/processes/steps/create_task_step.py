@@ -90,7 +90,7 @@ class CreateProjectTaskStep(KernelProcessStep[CreateProjectTaskState]):
         assert isinstance(chat_service, ChatCompletionClientBase)
         assert isinstance(settings, AzureChatPromptExecutionSettings)
         settings.response_format = CreateProjectTaskResponse
-        settings.function_choice_behavior = FunctionChoiceBehavior.Auto()
+        settings.function_choice_behavior = FunctionChoiceBehavior.Auto(filters={"included_plugins": ["mermaid_plugin", "resource_plugin"]})
         settings.temperature = 0.0
         settings.max_tokens = 6000
 
@@ -116,7 +116,7 @@ class CreateProjectTaskStep(KernelProcessStep[CreateProjectTaskState]):
         await context.emit_event(process_event=self.OutputEvents.TASK_CREATED, data=formatted_response.model_dump())
     
     @kernel_function(name=Functions.REVISE_TASK.value)
-    async def revise_tasks(self, context: KernelProcessStepContext, kernel: Kernel, payload: dict) -> None:
+    async def revise_tasks(self, context: KernelProcessStepContext, payload: dict, kernel: Annotated[Kernel | None, "The kernel", {"include_in_function_choices": False}] = None) -> None:
         logger.info("Revise task lists base on suggestions...")
         task_list = self.state.project_infos.task_list
         if not task_list:
@@ -139,14 +139,14 @@ class CreateProjectTaskStep(KernelProcessStep[CreateProjectTaskState]):
         chat_service, settings = kernel.select_ai_service(type=ChatCompletionClientBase)
         assert isinstance(chat_service, ChatCompletionClientBase)
         assert isinstance(settings, AzureChatPromptExecutionSettings)
-        settings.function_choice_behavior = FunctionChoiceBehavior.Auto()
+        settings.function_choice_behavior = FunctionChoiceBehavior.Auto(filters={"included_plugins": ["mermaid_plugin", "resource_plugin"]})
         settings.response_format = CreateProjectTaskResponse
         settings.temperature = 0.0
         settings.max_tokens = 6000
 
         agent = ChatCompletionAgent(
-            service=chat_service,
-            name = "ReviewTaskAgent",
+            kernel=kernel,
+            name = "ReviseTaskAgent",
             instructions= self.system_prompt.format(
                 input_format=Project.model_json_schema(),
                 output_format=CreateProjectTaskResponse.model_json_schema()

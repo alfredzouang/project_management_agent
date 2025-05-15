@@ -82,6 +82,7 @@ class GenerateOutputStep(KernelProcessStep[GenerateOutputState]):
         - estimated_effort_in_hours
         - status
         - required_skills
+        - assigned_to
         6. The task list gantt diagram should be in mermaid format.
 
 
@@ -117,7 +118,7 @@ class GenerateOutputStep(KernelProcessStep[GenerateOutputState]):
             type=ChatCompletionClientBase)
         assert isinstance(chat_service, ChatCompletionClientBase)
         assert isinstance(settings, AzureChatPromptExecutionSettings)
-        settings.function_choice_behavior = FunctionChoiceBehavior.Auto()
+        settings.function_choice_behavior = FunctionChoiceBehavior.Auto(filters={"included_plugins": ["mermaid_plugin", "resource_plugin"]})
 
         agent = ChatCompletionAgent(
             kernel=kernel,
@@ -195,9 +196,22 @@ class GenerateOutputStep(KernelProcessStep[GenerateOutputState]):
         assert isinstance(chat_service, ChatCompletionClientBase)
         assert isinstance(settings, AzureChatPromptExecutionSettings)
 
-        response = await chat_service.get_chat_message_content(chat_history=self.state.chat_history, settings=settings)
+        settings.function_choice_behavior = FunctionChoiceBehavior.Auto(filters={"included_plugins": ["mermaid_plugin", "resource_plugin"]})
+        settings.temperature = 0.0
+        settings.max_tokens = 6000
 
-        response: str = response.content
+        agent = ChatCompletionAgent(
+            kernel=kernel,
+            service=chat_service,
+            name = "ReviseOutputAgent",
+            instructions= self.system_prompt,
+            arguments=KernelArguments(settings=settings)
+        )
+        thread = ChatHistoryAgentThread(chat_history=self.state.chat_history)
+
+        response = await agent.get_response(thread=thread)
+        logger.warning("Agent response: %s", response.message.content)
+        response: str = response.message.content
         if response.startswith("```markdown") and response.endswith("```"):
             response = response[10:-3].strip()
         elif response.startswith("```") and response.endswith("```"):
@@ -208,12 +222,7 @@ class GenerateOutputStep(KernelProcessStep[GenerateOutputState]):
             response = response[:-3].strip()
         else:
             response = response.strip()
-        # logger.info(f"Markdown: {response}")
-        
-        # # 保存响应到文件
-        # output_file = os.path.join(OUTPUT_PATH, "output.md")
-        # with open(output_file, 'w', encoding='utf-8') as f:
-        #     f.write(response)
+
         
         self.state.output = response
         await context.emit_event(process_event=self.OutputEvents.OUTPUT_REVISED, data=payload)
@@ -248,10 +257,21 @@ class GenerateOutputStep(KernelProcessStep[GenerateOutputState]):
         settings.response_format = OutputReviewResponse
         settings.temperature = 0.0
         settings.max_tokens = 2000
+        settings.function_choice_behavior = FunctionChoiceBehavior.Auto(filters={"included_plugins": ["mermaid_plugin", "resource_plugin"]})
 
-        response = await chat_service.get_chat_message_content(chat_history=self.state.chat_history, settings=settings)
-        logger.info(f"Review response: {response.content}")
-        formatted_response: OutputReviewResponse = OutputReviewResponse.model_validate_json(response.content)
+        agent = ChatCompletionAgent(
+            kernel=kernel,
+            service=chat_service,
+            name = "ReviewOutputAgent",
+            instructions= self.system_prompt,
+            arguments=KernelArguments(settings=settings)
+        )
+        thread = ChatHistoryAgentThread(chat_history=self.state.chat_history)
+        response = await agent.get_response(thread=thread)
+        logger.warning("Agent response: %s", response.message.content)
+        formatted_response: OutputReviewResponse = OutputReviewResponse.model_validate_json(response.message.content)
+
+        logger.info(f"Review response: {formatted_response.suggestion}")
 
         if formatted_response.need_revision:
             await context.emit_event(process_event=self.OutputEvents.OUTPUT_REJECTED, data=formatted_response.model_dump())

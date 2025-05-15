@@ -1,3 +1,4 @@
+import resource
 from sqlalchemy import Column, Integer, String, create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
@@ -18,10 +19,11 @@ class ProjectTask(Base):
     description = Column(String)
 
 class Resource(Base):
-    __tablename__ = 'resource'
-    id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, index=True)
-    type = Column(String)
+    __tablename__ = 'project_resource'
+    id = Column(String, primary_key=True, index=True)
+    resource_name = Column(String, index=True)
+    resource_type = Column(String, index=True)
+    skills = Column(String, index=True)
 
 class ResourcePlan(Base):
     __tablename__ = 'resource_plan'

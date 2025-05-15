@@ -14,7 +14,9 @@ from semantic_kernel.functions import kernel_function
 from semantic_kernel.processes.kernel_process import (KernelProcessStep,
                                                       KernelProcessStepContext,
                                                       KernelProcessStepState)
-
+from typing import Annotated
+from semantic_kernel.connectors.ai import FunctionChoiceBehavior
+from semantic_kernel.agents import ChatCompletionAgent, ChatHistoryAgentThread
 from model.project_types import Project, ProjectTask
 
 logger = logging.getLogger(__name__)
@@ -40,6 +42,7 @@ class ReviewTaskStep(KernelProcessStep[ReviewTaskState]):
     class Functions(Enum):
         REVIEW_TASK = "ReviewTask"
         REVISE_TASK = "ReviseTask"
+        
 
     class OutputEvents(Enum):
         TASK_NEEDS_REVISION = "TaskNeedsRevision"
@@ -62,10 +65,7 @@ class ReviewTaskStep(KernelProcessStep[ReviewTaskState]):
         
         # OUTPUT FORMAT
         1. The output should be a JSON object with the following format:
-        {{
-            "need_revision": true/false,
-            "suggestion": "revision_suggestion"    
-        }}
+        {output_format}
 
         # IMPORTANT NOTE
         1. ** THE TASKS SHOULD BE AS ATOMIC AND GRANULAR AS POSSIBLE **, provide task split suggestion if the task is not atomic.
@@ -80,7 +80,7 @@ class ReviewTaskStep(KernelProcessStep[ReviewTaskState]):
                 system_message=self.system_prompt)
 
     @kernel_function(name=Functions.REVIEW_TASK.value)
-    async def review_task(self, context: KernelProcessStepContext, payload: dict, kernel: Kernel):
+    async def review_task(self, context: KernelProcessStepContext, payload: dict, kernel: Annotated[Kernel | None, "The kernel", {"include_in_function_choices": False}] = None):
         logger.info("Reviewing task...")
         
         task_list = payload.get("task_list", [])
@@ -104,13 +104,25 @@ class ReviewTaskStep(KernelProcessStep[ReviewTaskState]):
         settings.temperature = 0.0
         settings.max_tokens = 3000
 
-        response = await chat_service.get_chat_message_content(chat_history=self.state.chat_history, settings=settings)
+        settings.function_choice_behavior = FunctionChoiceBehavior.Auto(filters={"included_plugins": ["resource_plugin"]})
 
-        response: ReviewTaskResponse = ReviewTaskResponse.model_validate_json(response.content)
+        thread = ChatHistoryAgentThread(chat_history=self.state.chat_history)
+        logger.info("Creating agent for task review...")
+        agent = ChatCompletionAgent(
+            kernel=kernel,
+            name="ReviewTaskAgent",
+            instructions=self.system_prompt.format(
+                output_format=ReviewTaskResponse.model_json_schema()
+            ),
+        )
+        response = await agent.get_response(thread=thread)
+        logger.info(f"Response: {response.message.content}")
 
-        logger.info(f"Suggestion: {response.suggestion}")
-        logger.info(f"Need revision: {response.need_revision}")
-        if response.need_revision:
-            await context.emit_event(process_event=self.OutputEvents.TASK_NEEDS_REVISION, data=response)
+        formatted_response: ReviewTaskResponse = ReviewTaskResponse.model_validate_json(response.message.content) 
+
+        logger.info(f"Suggestion: {formatted_response.suggestion}")
+        logger.info(f"Need revision: {formatted_response.need_revision}")
+        if formatted_response.need_revision:
+            await context.emit_event(process_event=self.OutputEvents.TASK_NEEDS_REVISION, data=formatted_response)
         else:
             await context.emit_event(process_event=self.OutputEvents.TASK_REVIEW_PASSED, data=payload)

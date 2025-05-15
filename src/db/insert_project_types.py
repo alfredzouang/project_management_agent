@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from src.db.models.base_model import ProjectType, engine
+from db.models.base_model import ProjectType, engine
 
 # List of project types to insert
 project_types = [
