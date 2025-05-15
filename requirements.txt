@@ -5,3 +5,4 @@ autogen-ext[openai, azure, web-surfer]
 autogenstudio
 markdown-pdf
 semantic-kernel
+rich

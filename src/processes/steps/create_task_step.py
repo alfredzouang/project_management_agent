@@ -1,19 +1,22 @@
 import json
 from enum import Enum
 from typing import (ClassVar, List)
-
-from pydantic import BaseModel, Field
+from typing import Annotated
+from pydantic import BaseModel, ConfigDict, Field
 from semantic_kernel import Kernel
-from semantic_kernel.connectors.ai.chat_completion_client_base import \
-    ChatCompletionClientBase
 from semantic_kernel.connectors.ai.open_ai import (
     AzureChatPromptExecutionSettings)
 from semantic_kernel.contents import (ChatHistory,
                                       ChatHistoryTruncationReducer)
+from semantic_kernel.agents import ChatCompletionAgent, ChatHistoryAgentThread
+from semantic_kernel.connectors.ai.open_ai import AzureChatPromptExecutionSettings
 from semantic_kernel.functions import kernel_function
 from semantic_kernel.processes.kernel_process import (
     KernelProcessStep, KernelProcessStepContext, KernelProcessStepState)
-
+from semantic_kernel.functions.kernel_arguments import KernelArguments
+from semantic_kernel.connectors.ai.chat_completion_client_base import \
+    ChatCompletionClientBase
+from semantic_kernel.connectors.ai import FunctionChoiceBehavior
 from model.project_types import (Project, ProjectTask)
 import logging
 
@@ -72,10 +75,11 @@ class CreateProjectTaskStep(KernelProcessStep[CreateProjectTaskState]):
             self.state.chat_history = ChatHistoryTruncationReducer(system_message=self.system_prompt.format(input_format=project_schema_str, output_format=output_schema_str), target_count=20)
         if self.state.project_infos is None:
             self.state.project_infos = CreateProjectTaskResponse()
+
         self.state.chat_history
 
     @kernel_function(name=Functions.CREATE_TASK.value)
-    async def create_tasks(self, context: KernelProcessStepContext, kernel: Kernel, project: Project) -> None:
+    async def create_tasks(self, context: KernelProcessStepContext,  project: Project, kernel: Annotated[Kernel | None, "The kernel", {"include_in_function_choices": False}] = None) -> None:
 
         logger.info(f"Creating tasks for project: {project.description}")
 
@@ -85,14 +89,27 @@ class CreateProjectTaskStep(KernelProcessStep[CreateProjectTaskState]):
         chat_service, settings = kernel.select_ai_service(type=ChatCompletionClientBase)
         assert isinstance(chat_service, ChatCompletionClientBase)
         assert isinstance(settings, AzureChatPromptExecutionSettings)
-
         settings.response_format = CreateProjectTaskResponse
+        settings.function_choice_behavior = FunctionChoiceBehavior.Auto()
         settings.temperature = 0.0
         settings.max_tokens = 6000
 
-        response = await chat_service.get_chat_message_content(chat_history=self.state.chat_history, settings=settings)
+        agent = ChatCompletionAgent(
+            # service=chat_service,
+            kernel=kernel,
+            name = "CreateProjectTaskAgent",
+            instructions= self.system_prompt.format(
+                input_format=Project.model_json_schema(),
+                output_format=CreateProjectTaskResponse.model_json_schema()
+            ),
+            arguments=KernelArguments(settings=settings)
+        )
+        thread = ChatHistoryAgentThread(chat_history=self.state.chat_history)
 
-        formatted_response: CreateProjectTaskResponse = CreateProjectTaskResponse.model_validate_json(response.content)
+        response = await agent.get_response(thread=thread)
+        self.state.chat_history.add_assistant_message(response.message.content)
+
+        formatted_response: CreateProjectTaskResponse = CreateProjectTaskResponse.model_validate_json(response.message.content)
         task_list = formatted_response.task_list
         self.state.project_infos.task_list = task_list
 
@@ -118,17 +135,31 @@ class CreateProjectTaskStep(KernelProcessStep[CreateProjectTaskState]):
         {suggestion}
         """
         )
+        
         chat_service, settings = kernel.select_ai_service(type=ChatCompletionClientBase)
         assert isinstance(chat_service, ChatCompletionClientBase)
         assert isinstance(settings, AzureChatPromptExecutionSettings)
-
+        settings.function_choice_behavior = FunctionChoiceBehavior.Auto()
         settings.response_format = CreateProjectTaskResponse
         settings.temperature = 0.0
         settings.max_tokens = 6000
 
-        response = await chat_service.get_chat_message_content(chat_history=self.state.chat_history, settings=settings)
+        agent = ChatCompletionAgent(
+            service=chat_service,
+            name = "ReviewTaskAgent",
+            instructions= self.system_prompt.format(
+                input_format=Project.model_json_schema(),
+                output_format=CreateProjectTaskResponse.model_json_schema()
+            ),
+            arguments=KernelArguments(settings=settings)
+        )
+        thread = ChatHistoryAgentThread(chat_history=self.state.chat_history)
 
-        formatted_response: CreateProjectTaskResponse = CreateProjectTaskResponse.model_validate_json(response.content)
+        response = await agent.get_response(thread=thread)
+
+        formatted_response: CreateProjectTaskResponse = CreateProjectTaskResponse.model_validate_json(response.message.content)
+        self.state.chat_history.add_assistant_message(response.message.content)
+
         task_list = formatted_response.task_list
         self.state.project_infos.task_list = task_list
 

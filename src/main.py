@@ -13,10 +13,13 @@ from semantic_kernel.processes.local_runtime.local_kernel_process import \
     start as start_local_process
 
 from model.project_types import Project, ProjectTask, ProjectType, Resource
+from plugins import mermaid_plugin
 from processes.project_kick_start_process import (
     ProjectKickStartProcessEvents, build_process)
 from processes.steps.generate_output_step import (GenerateOutputState,
                                                   GenerateOutputStep)
+from plugins.mermaid_plugin import MermaidPlugin
+from rich.logging import RichHandler
 
 load_dotenv(override=True)
 
@@ -24,7 +27,8 @@ load_dotenv(override=True)
 logging.basicConfig(
     format="[%(asctime)s - %(name)s:%(lineno)d - %(levelname)s] %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S",
-    level=logging.INFO
+    level=logging.INFO,
+    handlers=[RichHandler()]
 )
 logging.getLogger("kernel").setLevel(logging.INFO)
 
@@ -52,7 +56,10 @@ async def main():
         api_version=AZURE_OPENAI_API_VERSION,
         service_id=service_id
     ))
+    mermaid_plugin = MermaidPlugin(kernel)
 
+    kernel.add_plugin(mermaid_plugin)
+    
     process = build_process()
     async with await start_local_process(
         process = process,
