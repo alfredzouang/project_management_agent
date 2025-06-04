@@ -15,8 +15,8 @@ The project aims to develop an agent system capable of transforming project desc
 - **Document Generation**: Automate the creation of project-related documents.
 
 ### Project Structure
-- **Agents**: Located in `src/agents/`, these files define the logic for task conversion and planning.
-- **Processes**: Located in `src/processes/`, these files manage the steps and events in the project lifecycle.
+- **Agents**: Located in `backend/src/agents/`, these files define the logic for task conversion and planning.
+- **Processes**: Located in `backend/src/processes/`, these files manage the steps and events in the project lifecycle.
 
 ## Example Output
 

@@ -26,3 +26,5 @@ test_notebook/
 
 data/
 *.db
+
+memory-bank/
