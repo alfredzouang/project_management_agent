@@ -7,7 +7,7 @@ from typing import Any, List
 
 from dotenv import load_dotenv
 
-from backend.src.model.project_types import Project
+from model.project_types import Project
 
 from semantic_kernel import Kernel
 from semantic_kernel.connectors.ai.open_ai import AzureChatCompletion
@@ -32,7 +32,7 @@ app.add_middleware(
 )
 
 class QueryRequest(BaseModel):
-    messages: List[str]
+    messages: List[dict]  # Each dict: {"role": "user"|"assistant", "content": str}
 
 class ProjectResponse(BaseModel):
     project: Project
@@ -84,7 +84,10 @@ async def create_project(request: QueryRequest):
             target_count=10
         )
         for msg in request.messages:
-            chat_history.add_user_message(msg)
+            if isinstance(msg, dict) and msg.get("role") == "user":
+                chat_history.add_user_message(msg.get("content", ""))
+            elif isinstance(msg, dict) and msg.get("role") == "assistant":
+                chat_history.add_assistant_message(msg.get("content", ""))
 
         # Select AI service and settings
         chat_service, settings = kernel.select_ai_service(type=ChatCompletionClientBase)
@@ -114,3 +117,7 @@ async def create_project(request: QueryRequest):
     except Exception as e:
         logger.error(f"Error in /project/query: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)

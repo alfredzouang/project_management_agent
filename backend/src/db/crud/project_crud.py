@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from backend.src.db.models.base_model import Project
+from db.models.base_model import Project
 
 def get_project(db: Session, project_id: int):
     return db.query(Project).filter(Project.id == project_id).first()

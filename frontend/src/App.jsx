@@ -162,7 +162,7 @@ function App() {
     setChatInput("");
   };
 
-  // Add AI/system message to chat history and update project if needed
+  // Add assistant message to chat history and update project if needed
   const handleReceiveChatResponse = (response) => {
     if (response.type === "project") {
       setRuns((prevRuns) => {
@@ -171,7 +171,11 @@ function App() {
         run.project = { ...run.project, ...response.project };
         run.chatMessages = [
           ...(run.chatMessages || []),
-          { text: "Project fields updated from backend (mocked).", sender: "system", timestamp: new Date().toLocaleTimeString() }
+          {
+            role: "assistant",
+            content: JSON.stringify(response.project, null, 2),
+            timestamp: new Date().toLocaleTimeString()
+          }
         ];
         updatedRuns[getCurrentRunIndex()] = run;
         return updatedRuns;
@@ -182,7 +186,11 @@ function App() {
         const run = { ...updatedRuns[getCurrentRunIndex()] };
         run.chatMessages = [
           ...(run.chatMessages || []),
-          { text: response.text, sender: "ai", timestamp: new Date().toLocaleTimeString() }
+          {
+            role: "assistant",
+            content: response.text,
+            timestamp: new Date().toLocaleTimeString()
+          }
         ];
         updatedRuns[getCurrentRunIndex()] = run;
         return updatedRuns;

@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from backend.src.db.models.base_model import ProjectTask
+from db.models.base_model import ProjectTask
 
 def get_project_task(db: Session, task_id: int):
     return db.query(ProjectTask).filter(ProjectTask.id == task_id).first()

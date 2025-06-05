@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { sendChatMessages } from "../api/api";
 import {
   Box,
   TextField,
@@ -38,53 +39,32 @@ function ChatInput({
     const userMessage = chatInput;
     onSendChat(userMessage);
 
-    // Simulate backend delay 3-5s
-    const delay = 3000 + Math.floor(Math.random() * 2000);
-    setTimeout(() => {
-      const lower = userMessage.toLowerCase();
-      if (lower.includes("json") || lower.includes("project")) {
-        // Return a mock project object
+    try {
+      // Send the list of messages (previous + new)
+      const response = await sendChatMessages([
+        ...chatMessages
+          .filter(m => typeof m === "object" && m.role && m.content)
+          .map(m => ({ role: m.role, content: m.content })),
+        { role: "user", content: userMessage }
+      ]);
+      if (response && response.project) {
         onReceiveChatResponse({
           type: "project",
-          project: {
-            name: "Demo Project",
-            description: "This is a mock project returned from the backend.",
-            customer: "Lenovo",
-            estimated_start_date: "2025-06-10",
-            estimated_finish_date: "2025-07-10",
-            actual_start_date: "2025-06-12",
-            actual_finish_date: "",
-            estimated_effort_in_hours: "120",
-            effort_completed_in_hours: "10",
-            complete_percentage: "8",
-            estimated_total_cost: "50000",
-            actual_total_cost: "",
-            cost_consumption_percentage: "2",
-            project_type: "IDG - Bench Time (Non-billable)",
-            sow_expriation_date: "2025-07-15",
-            owner: "Alice",
-            project_manager: "Bob",
-            project_coordinator: "Charlie",
-            solution_architect: "Diana",
-            client_name: "Acme Corp",
-            client_phone: "1234567890",
-            client_address: "123 Main St",
-            client_email: "client@acme.com",
-            supplier_name: "Supplier Inc",
-            supplier_phone: "0987654321",
-            supplier_address: "456 Supplier Rd",
-            supplier_email: "contact@supplier.com"
-          }
+          project: response.project
         });
       } else {
-        // Return a mock AI message
         onReceiveChatResponse({
-          type: "ai",
-          text: "This is a mock AI response from the backend."
+          type: "error",
+          text: "No project returned from backend."
         });
       }
-      setLocalProcessing(false);
-    }, delay);
+    } catch (error) {
+      onReceiveChatResponse({
+        type: "error",
+        text: error.message || "Failed to get project from backend."
+      });
+    }
+    setLocalProcessing(false);
   };
 
   return (

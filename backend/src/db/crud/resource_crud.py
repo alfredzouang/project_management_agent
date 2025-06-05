@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from backend.src.db.models.base_model import Resource
+from db.models.base_model import Resource
 
 def get_resource(db: Session, resource_id: int):
     return db.query(Resource).filter(Resource.id == resource_id).first()

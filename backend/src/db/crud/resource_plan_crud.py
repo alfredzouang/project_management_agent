@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from backend.src.db.models.base_model import ResourcePlan
+from db.models.base_model import ResourcePlan
 
 def get_resource_plan(db: Session, plan_id: int):
     return db.query(ResourcePlan).filter(ResourcePlan.id == plan_id).first()
