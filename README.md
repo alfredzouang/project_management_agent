@@ -1,26 +1,113 @@
 # Project Management Agents
 
-## Project Purpose
+![Application Screenshot](images/image.png)
 
-The project aims to develop an agent system capable of transforming project descriptions into actionable tasks and organizing the project plan. This system will streamline project management by automating task creation and planning. Future enhancements will include resource management and document generation capabilities.
+## Project Overview
 
-## Project Architecture
+Project Management Agents is a multi-agent system designed to automate project management tasks. It transforms user-provided project descriptions into actionable tasks, assigns resources, generates project plans and Gantt charts, and produces project SOWs (Statements of Work). The system leverages AI and modular architecture to streamline complex project management scenarios.
 
-### Core Components
-- **Agent System**: The core functionality revolves around the agent system that interprets project descriptions and generates tasks.
-- **Task Management**: Organizes tasks into a coherent project plan.
+**Key Goals:**
+- Automate task creation, resource assignment, and plan generation.
+- Generate project SOWs and Gantt charts from user input.
+- Provide a user-friendly interface for project input and output visualization.
 
-### Future Features
-- **Resource Management**: Plan to integrate features for managing project resources.
-- **Document Generation**: Automate the creation of project-related documents.
+**User Experience:**
+- Intuitive frontend for entering project descriptions.
+- Easy access to generated plans, charts, and documents.
 
-### Project Structure
-- **Agents**: Located in `backend/src/agents/`, these files define the logic for task conversion and planning.
-- **Processes**: Located in `backend/src/processes/`, these files manage the steps and events in the project lifecycle.
+---
+
+## System Architecture
+
+The system is built with a modular, event-driven architecture, integrating AI services and plugins for enhanced automation.
+
+**Main Components:**
+- **Backend (Python):**
+  - `backend/src/main.py`: Initializes the project, integrates plugins, and manages Azure AI services.
+  - **Plugins:** Extend functionality for diagram generation, SOW creation, and resource management.
+    - `mermaid_plugin.py`: Generates Mermaid diagrams and Gantt charts.
+    - `sow_plugin.py`: Produces SOW documents using AI and MailMerge.
+    - `resource_mcp.py`: Manages project resources via FastMCP.
+    - `sow_mcp_agent.py`: Handles SOW documents with Semantic Kernel MCP.
+  - **Processes:**
+    - `project_kick_start_process.py`: Orchestrates the project lifecycle with event-driven steps.
+
+- **Frontend (React + Vite):**
+  - Provides a user interface for project input and output visualization.
+  - Communicates with backend APIs for data exchange.
+
+**Architectural Patterns:**
+- Modular design for separation of concerns and maintainability.
+- Event-driven processes for flexible workflow management.
+- AI integration for automating diagram and document generation.
+
+---
+
+## Tech Stack
+
+- **Languages:** Python (backend), JavaScript/React (frontend)
+- **Frameworks/Libraries:** Semantic Kernel, FastMCP, MailMerge, Vite, React
+- **AI Services:** Azure OpenAI (for diagram and document generation)
+- **Other Tools:** dotenv (env management), RichHandler (logging), Git (version control)
+
+**Key Dependencies:**
+- Python: `dotenv`, `openai`, `semantic_kernel`, `fastmcp`, `mailmerge`
+- Node.js: See `frontend/package.json` for frontend dependencies
+
+---
+
+## Deployment Guide
+
+### Prerequisites
+
+- Python 3.8+
+- Node.js (for frontend)
+- Azure OpenAI API credentials (for AI features)
+
+### Setup
+
+1. **Clone the repository:**
+   ```sh
+   git clone <repo-url>
+   cd ProjectManagementAgents
+   ```
+
+2. **Backend Setup:**
+   - Create a `backend/.env` file (see `backend/.env.example` for required variables).
+   - Install Python dependencies:
+     ```sh
+     pip install -r backend/requirements.txt
+     ```
+
+3. **Frontend Setup:**
+   - Navigate to the frontend directory:
+     ```sh
+     cd frontend
+     ```
+   - Install Node.js dependencies:
+     ```sh
+     npm install
+     ```
+
+---
+
+## Startup Commands
+
+**Backend:**
+```sh
+python backend/src/api.py
+```
+
+**Frontend (in `frontend/` directory):**
+```sh
+npm run dev
+```
+
+---
 
 ## Example Output
 
-The project output includes a detailed task list and a Gantt chart that outlines the development timeline for the "SnakeEatEggsGameProject." Below is an example of the project's output:
+The system generates detailed task lists and Gantt charts for projects. Example output for a "SnakeEatEggsGameProject":
 
 ### Project Description
 - **Project Name:** SnakeEatEggsGameProject
