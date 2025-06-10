@@ -1,4 +1,5 @@
 import React, { useState, useRef } from "react";
+import { startProcessWithStatusStream } from "./api/api";
 import {
   Box,
   Container,
@@ -147,14 +148,26 @@ function App() {
     setChatInput(e.target.value);
   };
 
-  // Add user message to chat history
-  const handleSendChat = (message) => {
+  // Add user message to chat history (now supports file)
+  const handleSendChat = (message, file) => {
     setRuns((prevRuns) => {
       const updatedRuns = [...prevRuns];
       const run = { ...updatedRuns[getCurrentRunIndex()] };
       run.chatMessages = [
         ...(run.chatMessages || []),
-        { text: message, sender: "user", timestamp: new Date().toLocaleTimeString() }
+        {
+          text: message,
+          sender: "user",
+          timestamp: new Date().toLocaleTimeString(),
+          file: file
+            ? {
+                name: file.name,
+                size: file.size,
+                type: file.type,
+                // Optionally, you could add a URL for preview if you want to use URL.createObjectURL(file)
+              }
+            : null,
+        }
       ];
       updatedRuns[getCurrentRunIndex()] = run;
       return updatedRuns;
@@ -167,8 +180,19 @@ function App() {
     if (response.type === "project") {
       setRuns((prevRuns) => {
         const updatedRuns = [...prevRuns];
-        const run = { ...updatedRuns[getCurrentRunIndex()] };
-        run.project = { ...run.project, ...response.project };
+        const runIdx = getCurrentRunIndex();
+        const run = { ...updatedRuns[runIdx] };
+        const prevProject = run.project || {};
+        const newProject = { ...run.project, ...response.project };
+        // Find changed fields
+        const updatedFields = [];
+        for (const key in response.project) {
+          if (prevProject[key] !== response.project[key]) {
+            updatedFields.push(key);
+          }
+        }
+        run.project = newProject;
+        run.updatedFields = updatedFields;
         run.chatMessages = [
           ...(run.chatMessages || []),
           {
@@ -177,7 +201,17 @@ function App() {
             timestamp: new Date().toLocaleTimeString()
           }
         ];
-        updatedRuns[getCurrentRunIndex()] = run;
+        updatedRuns[runIdx] = run;
+        // Clear updatedFields after 1s
+        setTimeout(() => {
+          setRuns((runsAfterTimeout) => {
+            const runsCopy = [...runsAfterTimeout];
+            const runTimeout = { ...runsCopy[runIdx] };
+            runTimeout.updatedFields = [];
+            runsCopy[runIdx] = runTimeout;
+            return runsCopy;
+          });
+        }, 1000);
         return updatedRuns;
       });
     } else if (response.type === "ai") {
@@ -203,8 +237,84 @@ function App() {
     const idx = runs.findIndex((r) => r.id === selectedRunId);
     return idx === -1 ? 0 : idx;
   };
-  const currentRunIndex = getCurrentRunIndex();
-  const currentRun = runs[currentRunIndex];
+const currentRunIndex = getCurrentRunIndex();
+const currentRun = runs[currentRunIndex];
+
+/**
+ * Compute activeStep for the Stepper from processHistory.
+ * - If the last entry is "finished"/"done"/"error", set to Finish.
+ * - Otherwise, set to the most recent running step.
+ */
+const getActiveStepFromHistory = (processHistory) => {
+  if (!processHistory || processHistory.length === 0) return 0;
+  // Map backend step names (including sub-steps) to stepper index
+  const backendStepToStepperIndex = (step) => {
+    if (!step) return 0;
+    if (step === "Finish") return 6;
+    if (step.startsWith("CreateProjectTaskStep")) {
+      return 1;
+    }
+    if (step.startsWith("ReviewTaskStep")) {
+      return 2;
+    }
+    if (step.startsWith("AssignResourceStep")) {
+      return 3;
+    }
+    if (step.startsWith("GenerateOutputStep.generate_output") || step.startsWith("GenerateOutputStep.revise_output")) {
+      return 4;
+    }
+    if (step.startsWith("GenerateOutputStep.review_output")) {
+      return 5;
+    }
+    return 0;
+  };
+
+  // Special case: if the last entry is just {status: "done"} (no step), treat as Finish
+  const lastEntry = processHistory[processHistory.length - 1];
+  if (
+    lastEntry &&
+    lastEntry.status &&
+    (
+      lastEntry.status.toLowerCase().includes("finished") ||
+      lastEntry.status.toLowerCase().includes("done") ||
+      lastEntry.status.toLowerCase().includes("error")
+    ) &&
+    (!lastEntry.step || lastEntry.step === "")
+  ) {
+    return 6; // Finish
+  }
+  // Special case: if the last entry's step is "Finish", always return 6
+  if (lastEntry && lastEntry.step === "Finish") {
+    return 6;
+  }
+
+  // Find the most recent entry with status "start" or "active" (or not "end"/"needs_revision"/"review_passed")
+  for (let i = processHistory.length - 1; i >= 0; i--) {
+    const entry = processHistory[i];
+    if (entry && entry.status) {
+      const statusLower = entry.status.toLowerCase();
+      // Only consider "start" or "active" as the current running step
+      if (
+        statusLower === "start" ||
+        statusLower === "active" ||
+        statusLower === "processing"
+      ) {
+        if (entry.step) {
+          return backendStepToStepperIndex(entry.step);
+        }
+      }
+    }
+  }
+  // Fallback: use the most recent entry with a step
+  for (let i = processHistory.length - 1; i >= 0; i--) {
+    const entry = processHistory[i];
+    if (entry && entry.step) {
+      return backendStepToStepperIndex(entry.step);
+    }
+  }
+  return 0;
+};
+const computedActiveStep = getActiveStepFromHistory(currentRun.processHistory);
 
   // Handle form field changes
   const handleChange = (e) => {
@@ -302,8 +412,19 @@ function App() {
     setSelectedRunId(newRuns[0].id);
   };
 
-  // Simulate process (replace with real API integration)
+  // Store unsubscribe functions for process status streams
+  const processUnsubscribers = useRef({});
+
+  // Start backend process and stream status updates (FastAPI compatible)
   const handleStart = async () => {
+    // Clean up previous subscription for this run if exists
+    const runId = selectedRunId;
+    if (processUnsubscribers.current[runId]) {
+      processUnsubscribers.current[runId]();
+      delete processUnsubscribers.current[runId];
+    }
+
+    // Reset UI state for this run
     setRuns((prevRuns) => {
       const updatedRuns = [...prevRuns];
       updatedRuns[currentRunIndex] = {
@@ -317,129 +438,287 @@ function App() {
         supplierInfoExpanded: false,
         datesExpanded: false,
         financialsExpanded: false,
-        processHistory: [],
+        processHistory: [
+          {
+            step: "Start",
+            status: "Process started",
+            timestamp: new Date().toLocaleTimeString(),
+          },
+        ],
         historyExpanded: true,
       };
       return updatedRuns;
     });
 
-    // Log "Start" in history
-    let history = [{
-      step: "Start",
-      status: "Process started",
-      timestamp: new Date().toLocaleTimeString(),
-    }];
-    setRuns((prevRuns) => {
-      const updatedRuns = [...prevRuns];
-      updatedRuns[currentRunIndex] = {
-        ...updatedRuns[currentRunIndex],
-        processHistory: [...history],
-      };
-      return updatedRuns;
-    });
-    await new Promise((res) => setTimeout(res, 500));
+    try {
+      // Start backend process and stream status updates
+      const unsubscribe = await startProcessWithStatusStream(
+        runs[currentRunIndex].project,
+        (event) => {
+          // DEBUG: Log every event received from backend, before any parsing
+          if (window && window.console) {
+            window.console.log("[ProcessStatus] RAW event from backend:", event);
+          }
+          // If event is a string, try to parse as JSON (legacy backend)
+          let parsedEvent = event;
+          if (
+            typeof event === "string" &&
+            event.trim().length > 0
+          ) {
+            try {
+              parsedEvent = JSON.parse(event);
+            } catch (e) {
+              if (window && window.console) {
+                window.console.error("Failed to parse backend event (raw fallback):", event);
+              }
+              return; // Skip this event if not valid JSON
+            }
+          }
+          // If event is an object and has a .raw property (string), parse and merge .raw fields
+          if (
+            parsedEvent &&
+            typeof parsedEvent === "object" &&
+            typeof parsedEvent.raw === "string" &&
+            parsedEvent.raw.trim().length > 0
+          ) {
+            try {
+              const rawObj = JSON.parse(parsedEvent.raw);
+              parsedEvent = { ...parsedEvent, ...rawObj };
+            } catch (e) {
+              if (window && window.console) {
+                window.console.warn("Failed to parse .raw property as JSON:", parsedEvent.raw, e);
+              }
+              // Continue with parsedEvent as is
+            }
+          }
+          // Only try to parse event.raw if it is a string (legacy backend)
+          // (This block is now unreachable, but left for clarity)
+          // if (
+          //   event &&
+          //   typeof event === "object" &&
+          //   typeof event.raw === "string" &&
+          //   event.raw.trim().length > 0
+          // ) {
+          //   try {
+          //     // Robust Python dict-to-JSON conversion for deeply nested structures
+          //     let pyStr = event.raw;
+          //     // ... (conversion logic)
+          //     parsedEvent = JSON.parse(pyStr);
+          //   } catch (e) {
+          //     if (window && window.console) {
+          //       window.console.error("Failed to parse backend event:", event.raw, e);
+          //     }
+          //     return; // Skip this event
+          //   }
+          // }
 
-    // Simulate process with review/circle-back logic
-    let step = 0;
-    while (step < steps.length) {
+          console.log("=== Process status event received ===", parsedEvent, typeof parsedEvent);
+          if (typeof parsedEvent === "object" && parsedEvent !== null) {
+            try {
+              console.log("Event JSON:", JSON.stringify(parsedEvent, null, 2));
+            } catch (e) {
+              console.warn("Event could not be stringified, logging as object:", parsedEvent);
+            }
+          }
+          setRuns((prevRuns) => {
+            const updatedRuns = [...prevRuns];
+            const idx = updatedRuns.findIndex((r) => r.id === runId);
+            if (idx === -1) return prevRuns;
+            const run = { ...updatedRuns[idx] };
+
+            // Defensive: handle raw string event
+            let step = "", status = "", extra = undefined;
+            if (typeof parsedEvent === "object") {
+              step = parsedEvent.step || "";
+              status = parsedEvent.status || "";
+              extra = parsedEvent.extra;
+            } else if (typeof parsedEvent === "string") {
+              status = parsedEvent;
+            }
+
+            // Debug: log every event received for processHistory
+            if (window && window.console) {
+              window.console.log("[ProcessStatus] Event received for processHistory:", { step, status, extra, parsedEvent });
+            }
+
+            // Robust mapping from backend step to UI step index
+            const backendToUIMap = {
+              "Start": 0,
+              "CreateProjectTaskStep": 1,
+              "ReviewTaskStep": 2,
+              "AssignResourceStep": 3,
+              "GenerateOutputStep": 4,
+              "ReviewOutputStep": 5,
+              "Finish": 6
+            };
+            let stepIdx = 0;
+            if (
+              status &&
+              (status.toLowerCase().includes("finished") ||
+                status.toLowerCase().includes("done") ||
+                status.toLowerCase().includes("error"))
+            ) {
+              // If process is finished, set to Finish step
+              stepIdx = backendToUIMap["Finish"];
+            } else if (step) {
+              // Extract the base step name (e.g., "CreateProjectTaskStep" from "CreateProjectTaskStep.activate")
+              const baseStep = step.split(".")[0];
+              if (backendToUIMap.hasOwnProperty(baseStep)) {
+                stepIdx = backendToUIMap[baseStep];
+              }
+            }
+
+            // Display raw backend step and status as required
+            let extraInfo = extra;
+            if (extra && extra.suggestion) {
+              extraInfo = `Suggestion: ${extra.suggestion}`;
+            }
+            const history = run.processHistory ? [...run.processHistory] : [];
+            const lastEntry = history[history.length - 1];
+
+            // Always log what is about to be added
+            if (window && window.console) {
+              window.console.log("[ProcessStatus] About to add to processHistory:", {
+                step, status, extraInfo, lastEntry
+              });
+            }
+
+            // Only add to processHistory if step OR status is non-empty (ignore empty events)
+            if (
+              (step && step.trim() !== "") ||
+              (status && status.trim() !== "")
+            ) {
+              // Avoid duplicate consecutive entries
+              if (
+                !lastEntry ||
+                lastEntry.step !== (step || "") ||
+                lastEntry.status !== (status || "")
+              ) {
+                // Only include allowed fields in state for processHistory
+                let filteredState = undefined;
+                if (parsedEvent && parsedEvent.state) {
+                  const s = parsedEvent.state;
+                  filteredState = {};
+                  if (s.project !== undefined) filteredState.project = s.project;
+                  if (s.task_list !== undefined) filteredState.task_list = s.task_list;
+                  // Check for need_revision and suggestion at both top level and in payload
+                  if (s.need_revision !== undefined) filteredState.need_revision = s.need_revision;
+                  if (s.suggestion !== undefined) filteredState.suggestion = s.suggestion;
+                  if (s.payload && typeof s.payload === "object") {
+                    if (s.payload.need_revision !== undefined) filteredState.need_revision = s.payload.need_revision;
+                    if (s.payload.suggestion !== undefined) filteredState.suggestion = s.payload.suggestion;
+                  }
+                  // If none of the allowed fields are present, set to undefined
+                  if (Object.keys(filteredState).length === 0) filteredState = undefined;
+                }
+                // Extract suggestion from all possible locations: top level, extra, state, payload, and parsedEvent itself
+                let suggestion = undefined;
+                if (parsedEvent && parsedEvent.suggestion) {
+                  suggestion = parsedEvent.suggestion;
+                } else if (extra && extra.suggestion) {
+                  suggestion = extra.suggestion;
+                } else if (filteredState && filteredState.suggestion) {
+                  suggestion = filteredState.suggestion;
+                } else if (parsedEvent && parsedEvent.payload && parsedEvent.payload.suggestion) {
+                  suggestion = parsedEvent.payload.suggestion;
+                }
+                // If this is a review step and need_revision is explicitly false, or status is "approved", set status to "Passed"
+                let displayStatus = status || "";
+                const isReviewStep =
+                  step &&
+                  (step.startsWith("ReviewTaskStep.review_task") ||
+                    step.startsWith("GenerateOutputStep.review_output"));
+                const isApprovedStatus =
+                  status &&
+                  typeof status === "string" &&
+                  status.trim().toLowerCase() === "approved";
+                if (
+                  isReviewStep &&
+                  (
+                    (filteredState && filteredState.need_revision === false) ||
+                    (parsedEvent && parsedEvent.need_revision === false) ||
+                    (parsedEvent && parsedEvent.payload && parsedEvent.payload.need_revision === false) ||
+                    isApprovedStatus
+                  )
+                ) {
+                  displayStatus = "Passed";
+                }
+                history.push({
+                  step: step || "",
+                  status: displayStatus,
+                  timestamp: new Date().toLocaleTimeString(),
+                  extra: extraInfo,
+                  state: filteredState,
+                  ...(suggestion ? { suggestion } : {}),
+                });
+              }
+            }
+            // Always log every raw event for debugging
+            if (window && window.console) {
+              window.console.log("[ProcessStatus] RAW event (after parse):", parsedEvent);
+            }
+
+            // If process finished, set outputs if provided
+            let outputs = run.outputs;
+            let processing = run.processing;
+            let activeStepFinal = stepIdx;
+
+            // Show all sub-steps (e.g., CreateProjectTaskStep.create_tasks) in history
+            // No additional filtering needed, as full step is now preserved above
+
+            // If process is done, add a "Finish" step to history if not already present
+            if (
+              status &&
+              (status.toLowerCase().includes("finished") ||
+                status.toLowerCase().includes("done") ||
+                status.toLowerCase().includes("error"))
+            ) {
+              processing = false;
+              activeStepFinal = 6; // "Finish" step index
+              // Only add "Finish" step if not already present as last entry
+              const lastHistory = history[history.length - 1];
+              if (!lastHistory || lastHistory.step !== "Finish") {
+                history.push({
+                  step: "Finish",
+                  status: "Finished",
+                  timestamp: new Date().toLocaleTimeString(),
+                });
+              }
+              // Always set outputs if present in event or parsedEvent
+              if (event.output_files) {
+                outputs = event.output_files;
+              } else if (parsedEvent && parsedEvent.output_files) {
+                outputs = parsedEvent.output_files;
+              }
+            }
+
+            updatedRuns[idx] = {
+              ...run,
+              processHistory: history,
+              activeStep: activeStepFinal,
+              processing,
+              outputs,
+            };
+            // Debug: log processHistory to help diagnose blank history issue
+            console.log("Updated processHistory for run", runId, JSON.stringify(history, null, 2));
+            return updatedRuns;
+          });
+        }
+      );
+
+      // Store unsubscribe for this run
+      processUnsubscribers.current[runId] = unsubscribe;
+    } catch (err) {
       setRuns((prevRuns) => {
         const updatedRuns = [...prevRuns];
         updatedRuns[currentRunIndex] = {
           ...updatedRuns[currentRunIndex],
-          activeStep: step,
+          processing: false,
+          error: err.message || "Failed to start process",
         };
         return updatedRuns;
       });
-      const stepName = steps[step];
-      history.push({
-        step: stepName,
-        status: "Started",
-        timestamp: new Date().toLocaleTimeString(),
-      });
-      setRuns((prevRuns) => {
-        const updatedRuns = [...prevRuns];
-        updatedRuns[currentRunIndex] = {
-          ...updatedRuns[currentRunIndex],
-          processHistory: [...history],
-        };
-        return updatedRuns;
-      });
-      await new Promise((res) => setTimeout(res, 1000));
-      if (stepName === "Review Task") {
-        // Simulate approval (random for demo, replace with real logic)
-        const approved = Math.random() > 0.3;
-        history.push({
-          step: stepName,
-          status: approved ? "Approved" : "Not Approved (circle back)",
-          timestamp: new Date().toLocaleTimeString(),
-        });
-        setRuns((prevRuns) => {
-          const updatedRuns = [...prevRuns];
-          updatedRuns[currentRunIndex] = {
-            ...updatedRuns[currentRunIndex],
-            processHistory: [...history],
-          };
-          return updatedRuns;
-        });
-        if (!approved) {
-          step = 0; // Go back to "Create Task"
-          continue;
-        }
-      }
-      if (stepName === "Review Output") {
-        // Simulate approval (random for demo, replace with real logic)
-        const approved = Math.random() > 0.3;
-        history.push({
-          step: stepName,
-          status: approved ? "Approved" : "Not Approved (circle back)",
-          timestamp: new Date().toLocaleTimeString(),
-        });
-        setRuns((prevRuns) => {
-          const updatedRuns = [...prevRuns];
-          updatedRuns[currentRunIndex] = {
-            ...updatedRuns[currentRunIndex],
-            processHistory: [...history],
-          };
-          return updatedRuns;
-        });
-        if (!approved) {
-          step = steps.indexOf("Generate Output");
-          continue;
-        }
-      }
-      step++;
     }
-
-    // Log "Finish" in history
-    history.push({
-      step: "Finish",
-      status: "Process finished",
-      timestamp: new Date().toLocaleTimeString(),
-    });
-    setRuns((prevRuns) => {
-      const updatedRuns = [...prevRuns];
-      updatedRuns[currentRunIndex] = {
-        ...updatedRuns[currentRunIndex],
-        processHistory: [...history],
-      };
-      return updatedRuns;
-    });
-    await new Promise((res) => setTimeout(res, 500));
-
-    setRuns((prevRuns) => {
-      const updatedRuns = [...prevRuns];
-      updatedRuns[currentRunIndex] = {
-        ...updatedRuns[currentRunIndex],
-        outputs: {
-          markdown: "/output/output.md",
-          pdf: "/output/output.pdf",
-          word: "/output/output.docx",
-        },
-        processing: false,
-        historyExpanded: false,
-      };
-      return updatedRuns;
-    });
   };
 
 
@@ -506,6 +785,7 @@ function App() {
                     handleChange={handleChange}
                     processing={currentRun.processing}
                     mode={mode}
+                    updatedFields={currentRun.updatedFields || []}
                   />
                   {/* Client & Supplier Information Combined Accordion */}
                   <Accordion
@@ -542,12 +822,14 @@ function App() {
                           handleChange={handleChange}
                           processing={currentRun.processing}
                           mode={mode}
+                          updatedFields={currentRun.updatedFields || []}
                         />
                         <SupplierInformation
                           project={currentRun.project}
                           handleChange={handleChange}
                           processing={currentRun.processing}
                           mode={mode}
+                          updatedFields={currentRun.updatedFields || []}
                         />
                       </Box>
                     </AccordionDetails>
@@ -560,6 +842,7 @@ function App() {
                     handleChange={handleChange}
                     processing={currentRun.processing}
                     mode={mode}
+                    updatedFields={currentRun.updatedFields || []}
                   />
                   {/* Financials & Progress Accordion */}
                   <FinancialsSection
@@ -569,13 +852,14 @@ function App() {
                     handleChange={handleChange}
                     processing={currentRun.processing}
                     mode={mode}
+                    updatedFields={currentRun.updatedFields || []}
                   />
                 </Box>
               </Box>
               {/* Process Status */}
               <ProcessStatus
                 processing={currentRun.processing}
-                activeStep={currentRun.activeStep}
+                activeStep={computedActiveStep}
                 steps={steps}
                 processHistory={currentRun.processHistory}
                 historyExpanded={currentRun.historyExpanded}

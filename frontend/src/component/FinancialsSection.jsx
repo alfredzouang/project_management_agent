@@ -8,7 +8,8 @@ const FinancialsSection = ({
   project,
   handleChange,
   processing,
-  mode
+  mode,
+  updatedFields = []
 }) => {
   return (
     <Accordion
@@ -52,6 +53,7 @@ const FinancialsSection = ({
               variant="outlined"
               placeholder="Enter estimated effort in hours..."
               disabled={processing}
+              className={updatedFields.includes("estimated_effort_in_hours") ? "input-updated" : ""}
               slotProps={{
                 input: {
                   endAdornment: <InputAdornment position="end">hrs</InputAdornment>
@@ -71,6 +73,7 @@ const FinancialsSection = ({
               variant="outlined"
               placeholder="Enter effort completed in hours..."
               disabled={processing}
+              className={updatedFields.includes("effort_completed_in_hours") ? "input-updated" : ""}
               slotProps={{
                 input: {
                   endAdornment: <InputAdornment position="end">hrs</InputAdornment>
@@ -90,6 +93,7 @@ const FinancialsSection = ({
               variant="outlined"
               placeholder="Enter complete percentage..."
               disabled={processing}
+              className={updatedFields.includes("complete_percentage") ? "input-updated" : ""}
               slotProps={{
                 input: {
                   endAdornment: <InputAdornment position="end">%</InputAdornment>
@@ -109,6 +113,7 @@ const FinancialsSection = ({
               variant="outlined"
               placeholder="Enter estimated total cost..."
               disabled={processing}
+              className={updatedFields.includes("estimated_total_cost") ? "input-updated" : ""}
               slotProps={{
                 input: {
                   startAdornment: <InputAdornment position="start">$</InputAdornment>
@@ -128,6 +133,7 @@ const FinancialsSection = ({
               variant="outlined"
               placeholder="Enter actual total cost..."
               disabled={processing}
+              className={updatedFields.includes("actual_total_cost") ? "input-updated" : ""}
               slotProps={{
                 input: {
                   startAdornment: <InputAdornment position="start">$</InputAdornment>
@@ -147,6 +153,7 @@ const FinancialsSection = ({
               variant="outlined"
               placeholder="Enter cost consumption percentage..."
               disabled={processing}
+              className={updatedFields.includes("cost_consumption_percentage") ? "input-updated" : ""}
               slotProps={{
                 input: {
                   endAdornment: <InputAdornment position="end">%</InputAdornment>
@@ -165,6 +172,7 @@ const FinancialsSection = ({
               variant="outlined"
               placeholder="Enter customer..."
               disabled={processing}
+              className={updatedFields.includes("customer") ? "input-updated" : ""}
             />
           </Grid>
         </Grid>

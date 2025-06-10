@@ -1,0 +1,1005 @@
+{
+    "$type": "Process",
+    "id": "ce4f27852c5e45f3a541b05aef21fb42",
+    "name": "ProjectKickStartProcess",
+    "versionInfo": "v1",
+    "stepsState": {
+        "StepWithReporting": {
+            "$type": "Step",
+            "id": "95c6957b7bc94067a404bee7cd9f2485",
+            "name": "StepWithReporting",
+            "versionInfo": "AssignResourceStep.V1",
+            "state": {
+                "chat_history": {
+                    "messages": [
+                        {
+                            "metadata": {},
+                            "content_type": "message",
+                            "role": "system",
+                            "items": [
+                                {
+                                    "metadata": {},
+                                    "content_type": "text",
+                                    "text": "\n    # ROLE\n        You are a senior project manager and you are responsible for assign proper resources to tasks for a project.\n\n        # INSTRUCTIONS\n        1. You will be provided with a project description and tasks for the project.\n        2. You need to assign resources to each task based on the project description and tasks.\n        3. Each task should have one or more resources assigned to it.\n\n        # INPUT FORMAT\n        1. The input will be a JSON object with the following format:\n        {\n    \"description\": \"Base class for all projects.\",\n    \"properties\": {\n        \"name\": {\n            \"title\": \"Name\",\n            \"type\": \"string\"\n        },\n        \"description\": {\n            \"title\": \"Description\",\n            \"type\": \"string\"\n        },\n        \"customer\": {\n            \"anyOf\": [\n                {\n                    \"type\": \"string\"\n                },\n                {\n                    \"type\": \"null\"\n                }\n            ],\n            \"default\": null,\n            \"title\": \"Customer\"\n        },\n        \"estimated_start_date\": {\n            \"anyOf\": [\n                {\n                    \"type\": \"string\"\n                },\n                {\n                    \"type\": \"null\"\n                }\n            ],\n            \"default\": null,\n            \"title\": \"Estimated Start Date\"\n        },\n        \"estimated_finish_date\": {\n            \"anyOf\": [\n                {\n                    \"type\": \"string\"\n                },\n                {\n                    \"type\": \"null\"\n                }\n            ],\n            \"default\": null,\n            \"title\": \"Estimated Finish Date\"\n        },\n        \"actual_start_date\": {\n            \"anyOf\": [\n                {\n                    \"type\": \"string\"\n                },\n                {\n                    \"type\": \"null\"\n                }\n            ],\n            \"default\": null,\n            \"title\": \"Actual Start Date\"\n        },\n        \"actual_finish_date\": {\n            \"anyOf\": [\n                {\n                    \"type\": \"string\"\n                },\n                {\n                    \"type\": \"null\"\n                }\n            ],\n            \"default\": null,\n            \"title\": \"Actual Finish Date\"\n        },\n        \"estimated_effort_in_hours\": {\n            \"anyOf\": [\n                {\n                    \"type\": \"number\"\n                },\n                {\n                    \"type\": \"null\"\n                }\n            ],\n            \"default\": null,\n            \"title\": \"Estimated Effort In Hours\"\n        },\n        \"effort_completed_in_hours\": {\n            \"anyOf\": [\n                {\n                    \"type\": \"number\"\n                },\n                {\n                    \"type\": \"null\"\n                }\n            ],\n            \"default\": null,\n            \"title\": \"Effort Completed In Hours\"\n        },\n        \"complete_percentage\": {\n            \"anyOf\": [\n                {\n                    \"type\": \"number\"\n                },\n                {\n                    \"type\": \"null\"\n                }\n            ],\n            \"default\": null,\n            \"title\": \"Complete Percentage\"\n        },\n        \"estimated_total_cost\": {\n            \"anyOf\": [\n                {\n                    \"type\": \"number\"\n                },\n                {\n                    \"type\": \"null\"\n                }\n            ],\n            \"default\": null,\n            \"title\": \"Estimated Total Cost\"\n        },\n        \"actual_total_cost\": {\n            \"anyOf\": [\n                {\n                    \"type\": \"number\"\n                },\n                {\n                    \"type\": \"null\"\n                }\n            ],\n            \"default\": null,\n            \"title\": \"Actual Total Cost\"\n        },\n        \"cost_consumption_percentage\": {\n            \"anyOf\": [\n                {\n                    \"type\": \"number\"\n                },\n                {\n                    \"type\": \"null\"\n                }\n            ],\n            \"default\": null,\n            \"title\": \"Cost Consumption Percentage\"\n        },\n        \"project_type\": {\n            \"default\": null,\n            \"enum\": [\n                \"IDG - Bench Time (Non-billable)\",\n                \"Managed Services - DSS\",\n                \"IDG - DaaS Services\",\n                \"Managed Services - BWA\",\n                \"IDG - Multi Stream Projects\",\n                \"ARS\",\n                \"Lenovo Storage DSS-G\",\n                \"IDG - CFS Projects (ISG)\",\n                \"IDG - ARS Projects\",\n                \"HPC\",\n                \"DB Migration\",\n                \"IDG - ARS Projects (Channel)\",\n                \"IDG - TruScale Projects (ISG)\",\n                \"IDG - CFS Projects (Channel)\",\n                \"Hardware-only deployment\",\n                \"Managed Services - Hardware only\",\n                \"IDG - ARS Projects (ISG)\",\n                \"Lenovo Storage (other)\",\n                \"IDG - CFS Projects\",\n                \"ThinkSystem DM Remote\",\n                \"IDG - System Integration\",\n                \"IDG - CSP Projects\",\n                \"Managed Services - Flex\",\n                \"VDI Remote Visualization\",\n                \"Managed Services - HPC\",\n                \"Managed Services - HANA\",\n                \"IDG - Custom Application Development\",\n                \"IDG - Deploy Projects (ISG)\",\n                \"IDG - CO2 Projects (ISG)\",\n                \"IDG - Other (Time off)\",\n                \"IDG - CO2 Projects\",\n                \"ThinkSystem DM/DE\",\n                \"IDG - Managed Services\",\n                \"IDG - Enablement ISU Projects\",\n                \"TruScale\",\n                \"IDG - Agency Services\",\n                \"IDG - Business Consulting\",\n                \"Hardware Install\",\n                \"IDG - SSG Presales\",\n                \"Extended Services\",\n                \"Healthcheck\",\n                \"IDG - CO2 Projects (Channel)\",\n                \"IDG - Business Process Outsourcing\",\n                \"Flex Services\",\n                \"IDG - Presales Activity (Non-Billable)\",\n                \"IDG - Legacy Non SOW\",\n                \"IDG - Application Management\",\n                \"IDG - Workplace Solutions (ISU)\",\n                \"IDG - Deploy Projects\",\n                \"ThinkAgile MX\",\n                \"IDG - Education & Training Projects\",\n                \"IDG - Global Shared Support (GSS)\",\n                \"Other\",\n                \"IDG - IT Consulting\",\n                \"ThinkAgile CP\",\n                \"Azure Cloud Migration Workshop\",\n                \"Data Center Services\",\n                \"ThinkAgile SXM (Azure Stack)\",\n                \"IDG - ITC Projects\",\n                \"ThinkAgile VX (VSAN)\",\n                \"ThinkAgile HX & SXN (Nutanix)\",\n                \"IDG - ITC Projects  (ISG)\",\n                \"IDG - DaaS Services Transition\",\n                \"IDG - MSCT Activity\",\n                \"IDG - Internal Lenovo Project\",\n                \"IDG - DWS Managed Service Desk\",\n                \"SAP-HANA\",\n                \"vRealize Cloud Operations Management Services\",\n                \"Network configuration services\",\n                \"Other - Virtualization & VDI\",\n                \"IDG - PMO Transition Projects\",\n                \"IDG - Other (Non-Billable)\",\n                \"IDG - WW Presales (Non-Billable)\",\n                \"IDG - Esports Projects\",\n                \"ThinkAgile VX Remote Deployment\",\n                \"Tokens\",\n                \"ThinkAgile SXM Remote Deployment\",\n                \"IDG - Lenovo Managed Services (LMS)\",\n                \"Other - Hybrid Cloud\",\n                \"ThinkSystem DE Remote\",\n                \"Presales\",\n                \"VDI\",\n                \"VDI Architecture Jumpstart Services\"\n            ],\n            \"title\": \"Project Type\",\n            \"type\": \"string\"\n        },\n        \"sow_expriation_date\": {\n            \"anyOf\": [\n                {\n                    \"type\": \"string\"\n                },\n                {\n                    \"type\": \"null\"\n                }\n            ],\n            \"default\": null,\n            \"title\": \"Sow Expriation Date\"\n        },\n        \"kick_off_partner_completed_and_minutes_published_date\": {\n            \"anyOf\": [\n                {\n                    \"type\": \"string\"\n                },\n                {\n                    \"type\": \"null\"\n                }\n            ],\n            \"default\": null,\n            \"title\": \"Kick Off Partner Completed And Minutes Published Date\"\n        },\n        \"kick_off_internal_completed_and_minutes_published_date\": {\n            \"anyOf\": [\n                {\n                    \"type\": \"string\"\n                },\n                {\n                    \"type\": \"null\"\n                }\n            ],\n            \"default\": null,\n            \"title\": \"Kick Off Internal Completed And Minutes Published Date\"\n        },\n        \"kick_off_customer_completed_and_minutes_published_date\": {\n            \"anyOf\": [\n                {\n                    \"type\": \"string\"\n                },\n                {\n                    \"type\": \"null\"\n                }\n            ],\n            \"default\": null,\n            \"title\": \"Kick Off Customer Completed And Minutes Published Date\"\n        },\n        \"owner\": {\n            \"anyOf\": [\n                {\n                    \"type\": \"string\"\n                },\n                {\n                    \"type\": \"null\"\n                }\n            ],\n            \"default\": null,\n            \"title\": \"Owner\"\n        },\n        \"project_manager\": {\n            \"anyOf\": [\n                {\n                    \"type\": \"string\"\n                },\n                {\n                    \"type\": \"null\"\n                }\n            ],\n            \"default\": null,\n            \"title\": \"Project Manager\"\n        },\n        \"project_coordinator\": {\n            \"anyOf\": [\n                {\n                    \"type\": \"string\"\n                },\n                {\n                    \"type\": \"null\"\n                }\n            ],\n            \"default\": null,\n            \"title\": \"Project Coordinator\"\n        },\n        \"solution_architect\": {\n            \"anyOf\": [\n                {\n                    \"type\": \"string\"\n                },\n                {\n                    \"type\": \"null\"\n                }\n            ],\n            \"default\": null,\n            \"title\": \"Solution Architect\"\n        },\n        \"client_name\": {\n            \"anyOf\": [\n                {\n                    \"type\": \"string\"\n                },\n                {\n                    \"type\": \"null\"\n                }\n            ],\n            \"default\": null,\n            \"title\": \"Client Name\"\n        },\n        \"client_phone\": {\n            \"anyOf\": [\n                {\n                    \"type\": \"string\"\n                },\n                {\n                    \"type\": \"null\"\n                }\n            ],\n            \"default\": null,\n            \"title\": \"Client Phone\"\n        },\n        \"client_address\": {\n            \"anyOf\": [\n                {\n                    \"type\": \"string\"\n                },\n                {\n                    \"type\": \"null\"\n                }\n            ],\n            \"default\": null,\n            \"title\": \"Client Address\"\n        },\n        \"client_email\": {\n            \"anyOf\": [\n                {\n                    \"type\": \"string\"\n                },\n                {\n                    \"type\": \"null\"\n                }\n            ],\n            \"default\": null,\n            \"title\": \"Client Email\"\n        },\n        \"supplier_name\": {\n            \"anyOf\": [\n                {\n                    \"type\": \"string\"\n                },\n                {\n                    \"type\": \"null\"\n                }\n            ],\n            \"default\": null,\n            \"title\": \"Supplier Name\"\n        },\n        \"supplier_phone\": {\n            \"anyOf\": [\n                {\n                    \"type\": \"string\"\n                },\n                {\n                    \"type\": \"null\"\n                }\n            ],\n            \"default\": null,\n            \"title\": \"Supplier Phone\"\n        },\n        \"supplier_address\": {\n            \"anyOf\": [\n                {\n                    \"type\": \"string\"\n                },\n                {\n                    \"type\": \"null\"\n                }\n            ],\n            \"default\": null,\n            \"title\": \"Supplier Address\"\n        },\n        \"supplier_email\": {\n            \"anyOf\": [\n                {\n                    \"type\": \"string\"\n                },\n                {\n                    \"type\": \"null\"\n                }\n            ],\n            \"default\": null,\n            \"title\": \"Supplier Email\"\n        }\n    },\n    \"required\": [\n        \"name\",\n        \"description\"\n    ],\n    \"title\": \"Project\",\n    \"type\": \"object\"\n}\n\n        # OUTPUT FORMAT\n        1. The tasks should be in JSON format.\n        2. The JSON format should be as follows:\n        {\n    \"$defs\": {\n        \"Project\": {\n            \"description\": \"Base class for all projects.\",\n            \"properties\": {\n                \"name\": {\n                    \"title\": \"Name\",\n                    \"type\": \"string\"\n                },\n                \"description\": {\n                    \"title\": \"Description\",\n                    \"type\": \"string\"\n                },\n                \"customer\": {\n                    \"anyOf\": [\n                        {\n                            \"type\": \"string\"\n                        },\n                        {\n                            \"type\": \"null\"\n                        }\n                    ],\n                    \"default\": null,\n                    \"title\": \"Customer\"\n                },\n                \"estimated_start_date\": {\n                    \"anyOf\": [\n                        {\n                            \"type\": \"string\"\n                        },\n                        {\n                            \"type\": \"null\"\n                        }\n                    ],\n                    \"default\": null,\n                    \"title\": \"Estimated Start Date\"\n                },\n                \"estimated_finish_date\": {\n                    \"anyOf\": [\n                        {\n                            \"type\": \"string\"\n                        },\n                        {\n                            \"type\": \"null\"\n                        }\n                    ],\n                    \"default\": null,\n                    \"title\": \"Estimated Finish Date\"\n                },\n                \"actual_start_date\": {\n                    \"anyOf\": [\n                        {\n                            \"type\": \"string\"\n                        },\n                        {\n                            \"type\": \"null\"\n                        }\n                    ],\n                    \"default\": null,\n                    \"title\": \"Actual Start Date\"\n                },\n                \"actual_finish_date\": {\n                    \"anyOf\": [\n                        {\n                            \"type\": \"string\"\n                        },\n                        {\n                            \"type\": \"null\"\n                        }\n                    ],\n                    \"default\": null,\n                    \"title\": \"Actual Finish Date\"\n                },\n                \"estimated_effort_in_hours\": {\n                    \"anyOf\": [\n                        {\n                            \"type\": \"number\"\n                        },\n                        {\n                            \"type\": \"null\"\n                        }\n                    ],\n                    \"default\": null,\n                    \"title\": \"Estimated Effort In Hours\"\n                },\n                \"effort_completed_in_hours\": {\n                    \"anyOf\": [\n                        {\n                            \"type\": \"number\"\n                        },\n                        {\n                            \"type\": \"null\"\n                        }\n                    ],\n                    \"default\": null,\n                    \"title\": \"Effort Completed In Hours\"\n                },\n                \"complete_percentage\": {\n                    \"anyOf\": [\n                        {\n                            \"type\": \"number\"\n                        },\n                        {\n                            \"type\": \"null\"\n                        }\n                    ],\n                    \"default\": null,\n                    \"title\": \"Complete Percentage\"\n                },\n                \"estimated_total_cost\": {\n                    \"anyOf\": [\n                        {\n                            \"type\": \"number\"\n                        },\n                        {\n                            \"type\": \"null\"\n                        }\n                    ],\n                    \"default\": null,\n                    \"title\": \"Estimated Total Cost\"\n                },\n                \"actual_total_cost\": {\n                    \"anyOf\": [\n                        {\n                            \"type\": \"number\"\n                        },\n                        {\n                            \"type\": \"null\"\n                        }\n                    ],\n                    \"default\": null,\n                    \"title\": \"Actual Total Cost\"\n                },\n                \"cost_consumption_percentage\": {\n                    \"anyOf\": [\n                        {\n                            \"type\": \"number\"\n                        },\n                        {\n                            \"type\": \"null\"\n                        }\n                    ],\n                    \"default\": null,\n                    \"title\": \"Cost Consumption Percentage\"\n                },\n                \"project_type\": {\n                    \"default\": null,\n                    \"enum\": [\n                        \"IDG - Bench Time (Non-billable)\",\n                        \"Managed Services - DSS\",\n                        \"IDG - DaaS Services\",\n                        \"Managed Services - BWA\",\n                        \"IDG - Multi Stream Projects\",\n                        \"ARS\",\n                        \"Lenovo Storage DSS-G\",\n                        \"IDG - CFS Projects (ISG)\",\n                        \"IDG - ARS Projects\",\n                        \"HPC\",\n                        \"DB Migration\",\n                        \"IDG - ARS Projects (Channel)\",\n                        \"IDG - TruScale Projects (ISG)\",\n                        \"IDG - CFS Projects (Channel)\",\n                        \"Hardware-only deployment\",\n                        \"Managed Services - Hardware only\",\n                        \"IDG - ARS Projects (ISG)\",\n                        \"Lenovo Storage (other)\",\n                        \"IDG - CFS Projects\",\n                        \"ThinkSystem DM Remote\",\n                        \"IDG - System Integration\",\n                        \"IDG - CSP Projects\",\n                        \"Managed Services - Flex\",\n                        \"VDI Remote Visualization\",\n                        \"Managed Services - HPC\",\n                        \"Managed Services - HANA\",\n                        \"IDG - Custom Application Development\",\n                        \"IDG - Deploy Projects (ISG)\",\n                        \"IDG - CO2 Projects (ISG)\",\n                        \"IDG - Other (Time off)\",\n                        \"IDG - CO2 Projects\",\n                        \"ThinkSystem DM/DE\",\n                        \"IDG - Managed Services\",\n                        \"IDG - Enablement ISU Projects\",\n                        \"TruScale\",\n                        \"IDG - Agency Services\",\n                        \"IDG - Business Consulting\",\n                        \"Hardware Install\",\n                        \"IDG - SSG Presales\",\n                        \"Extended Services\",\n                        \"Healthcheck\",\n                        \"IDG - CO2 Projects (Channel)\",\n                        \"IDG - Business Process Outsourcing\",\n                        \"Flex Services\",\n                        \"IDG - Presales Activity (Non-Billable)\",\n                        \"IDG - Legacy Non SOW\",\n                        \"IDG - Application Management\",\n                        \"IDG - Workplace Solutions (ISU)\",\n                        \"IDG - Deploy Projects\",\n                        \"ThinkAgile MX\",\n                        \"IDG - Education & Training Projects\",\n                        \"IDG - Global Shared Support (GSS)\",\n                        \"Other\",\n                        \"IDG - IT Consulting\",\n                        \"ThinkAgile CP\",\n                        \"Azure Cloud Migration Workshop\",\n                        \"Data Center Services\",\n                        \"ThinkAgile SXM (Azure Stack)\",\n                        \"IDG - ITC Projects\",\n                        \"ThinkAgile VX (VSAN)\",\n                        \"ThinkAgile HX & SXN (Nutanix)\",\n                        \"IDG - ITC Projects  (ISG)\",\n                        \"IDG - DaaS Services Transition\",\n                        \"IDG - MSCT Activity\",\n                        \"IDG - Internal Lenovo Project\",\n                        \"IDG - DWS Managed Service Desk\",\n                        \"SAP-HANA\",\n                        \"vRealize Cloud Operations Management Services\",\n                        \"Network configuration services\",\n                        \"Other - Virtualization & VDI\",\n                        \"IDG - PMO Transition Projects\",\n                        \"IDG - Other (Non-Billable)\",\n                        \"IDG - WW Presales (Non-Billable)\",\n                        \"IDG - Esports Projects\",\n                        \"ThinkAgile VX Remote Deployment\",\n                        \"Tokens\",\n                        \"ThinkAgile SXM Remote Deployment\",\n                        \"IDG - Lenovo Managed Services (LMS)\",\n                        \"Other - Hybrid Cloud\",\n                        \"ThinkSystem DE Remote\",\n                        \"Presales\",\n                        \"VDI\",\n                        \"VDI Architecture Jumpstart Services\"\n                    ],\n                    \"title\": \"Project Type\",\n                    \"type\": \"string\"\n                },\n                \"sow_expriation_date\": {\n                    \"anyOf\": [\n                        {\n                            \"type\": \"string\"\n                        },\n                        {\n                            \"type\": \"null\"\n                        }\n                    ],\n                    \"default\": null,\n                    \"title\": \"Sow Expriation Date\"\n                },\n                \"kick_off_partner_completed_and_minutes_published_date\": {\n                    \"anyOf\": [\n                        {\n                            \"type\": \"string\"\n                        },\n                        {\n                            \"type\": \"null\"\n                        }\n                    ],\n                    \"default\": null,\n                    \"title\": \"Kick Off Partner Completed And Minutes Published Date\"\n                },\n                \"kick_off_internal_completed_and_minutes_published_date\": {\n                    \"anyOf\": [\n                        {\n                            \"type\": \"string\"\n                        },\n                        {\n                            \"type\": \"null\"\n                        }\n                    ],\n                    \"default\": null,\n                    \"title\": \"Kick Off Internal Completed And Minutes Published Date\"\n                },\n                \"kick_off_customer_completed_and_minutes_published_date\": {\n                    \"anyOf\": [\n                        {\n                            \"type\": \"string\"\n                        },\n                        {\n                            \"type\": \"null\"\n                        }\n                    ],\n                    \"default\": null,\n                    \"title\": \"Kick Off Customer Completed And Minutes Published Date\"\n                },\n                \"owner\": {\n                    \"anyOf\": [\n                        {\n                            \"type\": \"string\"\n                        },\n                        {\n                            \"type\": \"null\"\n                        }\n                    ],\n                    \"default\": null,\n                    \"title\": \"Owner\"\n                },\n                \"project_manager\": {\n                    \"anyOf\": [\n                        {\n                            \"type\": \"string\"\n                        },\n                        {\n                            \"type\": \"null\"\n                        }\n                    ],\n                    \"default\": null,\n                    \"title\": \"Project Manager\"\n                },\n                \"project_coordinator\": {\n                    \"anyOf\": [\n                        {\n                            \"type\": \"string\"\n                        },\n                        {\n                            \"type\": \"null\"\n                        }\n                    ],\n                    \"default\": null,\n                    \"title\": \"Project Coordinator\"\n                },\n                \"solution_architect\": {\n                    \"anyOf\": [\n                        {\n                            \"type\": \"string\"\n                        },\n                        {\n                            \"type\": \"null\"\n                        }\n                    ],\n                    \"default\": null,\n                    \"title\": \"Solution Architect\"\n                },\n                \"client_name\": {\n                    \"anyOf\": [\n                        {\n                            \"type\": \"string\"\n                        },\n                        {\n                            \"type\": \"null\"\n                        }\n                    ],\n                    \"default\": null,\n                    \"title\": \"Client Name\"\n                },\n                \"client_phone\": {\n                    \"anyOf\": [\n                        {\n                            \"type\": \"string\"\n                        },\n                        {\n                            \"type\": \"null\"\n                        }\n                    ],\n                    \"default\": null,\n                    \"title\": \"Client Phone\"\n                },\n                \"client_address\": {\n                    \"anyOf\": [\n                        {\n                            \"type\": \"string\"\n                        },\n                        {\n                            \"type\": \"null\"\n                        }\n                    ],\n                    \"default\": null,\n                    \"title\": \"Client Address\"\n                },\n                \"client_email\": {\n                    \"anyOf\": [\n                        {\n                            \"type\": \"string\"\n                        },\n                        {\n                            \"type\": \"null\"\n                        }\n                    ],\n                    \"default\": null,\n                    \"title\": \"Client Email\"\n                },\n                \"supplier_name\": {\n                    \"anyOf\": [\n                        {\n                            \"type\": \"string\"\n                        },\n                        {\n                            \"type\": \"null\"\n                        }\n                    ],\n                    \"default\": null,\n                    \"title\": \"Supplier Name\"\n                },\n                \"supplier_phone\": {\n                    \"anyOf\": [\n                        {\n                            \"type\": \"string\"\n                        },\n                        {\n                            \"type\": \"null\"\n                        }\n                    ],\n                    \"default\": null,\n                    \"title\": \"Supplier Phone\"\n                },\n                \"supplier_address\": {\n                    \"anyOf\": [\n                        {\n                            \"type\": \"string\"\n                        },\n                        {\n                            \"type\": \"null\"\n                        }\n                    ],\n                    \"default\": null,\n                    \"title\": \"Supplier Address\"\n                },\n                \"supplier_email\": {\n                    \"anyOf\": [\n                        {\n                            \"type\": \"string\"\n                        },\n                        {\n                            \"type\": \"null\"\n                        }\n                    ],\n                    \"default\": null,\n                    \"title\": \"Supplier Email\"\n                }\n            },\n            \"required\": [\n                \"name\",\n                \"description\"\n            ],\n            \"title\": \"Project\",\n            \"type\": \"object\"\n        },\n        \"ProjectTask\": {\n            \"description\": \"Project Task Model\\n\\nArgs:\\n    BaseModel (_type_): _description_\",\n            \"properties\": {\n                \"id\": {\n                    \"title\": \"Id\",\n                    \"type\": \"string\"\n                },\n                \"task_name\": {\n                    \"title\": \"Task Name\",\n                    \"type\": \"string\"\n                },\n                \"task_description\": {\n                    \"title\": \"Task Description\",\n                    \"type\": \"string\"\n                },\n                \"project_id\": {\n                    \"title\": \"Project Id\",\n                    \"type\": \"string\"\n                },\n                \"parent_task\": {\n                    \"anyOf\": [\n                        {\n                            \"type\": \"string\"\n                        },\n                        {\n                            \"type\": \"null\"\n                        }\n                    ],\n                    \"default\": null,\n                    \"title\": \"Parent Task\"\n                },\n                \"child_tasks\": {\n                    \"anyOf\": [\n                        {\n                            \"items\": {\n                                \"type\": \"string\"\n                            },\n                            \"type\": \"array\"\n                        },\n                        {\n                            \"type\": \"null\"\n                        }\n                    ],\n                    \"default\": null,\n                    \"title\": \"Child Tasks\"\n                },\n                \"dependent_task\": {\n                    \"anyOf\": [\n                        {\n                            \"items\": {\n                                \"type\": \"string\"\n                            },\n                            \"type\": \"array\"\n                        },\n                        {\n                            \"type\": \"null\"\n                        }\n                    ],\n                    \"default\": null,\n                    \"title\": \"Dependent Task\"\n                },\n                \"estimated_effort_in_hours\": {\n                    \"anyOf\": [\n                        {\n                            \"type\": \"number\"\n                        },\n                        {\n                            \"type\": \"null\"\n                        }\n                    ],\n                    \"default\": null,\n                    \"title\": \"Estimated Effort In Hours\"\n                },\n                \"status_reason\": {\n                    \"title\": \"Status Reason\",\n                    \"type\": \"string\"\n                },\n                \"outline_level\": {\n                    \"title\": \"Outline Level\",\n                    \"type\": \"integer\"\n                },\n                \"assigned_to\": {\n                    \"anyOf\": [\n                        {\n                            \"$ref\": \"#/$defs/Resource\"\n                        },\n                        {\n                            \"type\": \"null\"\n                        }\n                    ],\n                    \"default\": null\n                },\n                \"required_skills\": {\n                    \"anyOf\": [\n                        {\n                            \"items\": {\n                                \"type\": \"string\"\n                            },\n                            \"type\": \"array\"\n                        },\n                        {\n                            \"type\": \"null\"\n                        }\n                    ],\n                    \"default\": null,\n                    \"title\": \"Required Skills\"\n                },\n                \"is_milestone\": {\n                    \"anyOf\": [\n                        {\n                            \"type\": \"boolean\"\n                        },\n                        {\n                            \"type\": \"null\"\n                        }\n                    ],\n                    \"title\": \"Is Milestone\"\n                },\n                \"deliverables\": {\n                    \"anyOf\": [\n                        {\n                            \"items\": {\n                                \"type\": \"string\"\n                            },\n                            \"type\": \"array\"\n                        },\n                        {\n                            \"type\": \"null\"\n                        }\n                    ],\n                    \"default\": null,\n                    \"title\": \"Deliverables\"\n                },\n                \"status\": {\n                    \"anyOf\": [\n                        {\n                            \"enum\": [\n                                \"Not Started\",\n                                \"In Progress\",\n                                \"Completed\",\n                                \"Blocked\",\n                                \"Delayed\",\n                                \"On Hold\",\n                                \"Cancelled\"\n                            ],\n                            \"type\": \"string\"\n                        },\n                        {\n                            \"type\": \"null\"\n                        }\n                    ],\n                    \"default\": null,\n                    \"title\": \"Status\"\n                }\n            },\n            \"required\": [\n                \"id\",\n                \"task_name\",\n                \"task_description\",\n                \"project_id\",\n                \"status_reason\",\n                \"outline_level\",\n                \"is_milestone\"\n            ],\n            \"title\": \"ProjectTask\",\n            \"type\": \"object\"\n        },\n        \"Resource\": {\n            \"description\": \"Resource model\\n\\nArgs:\\n    BaseModel (_type_): _description_\",\n            \"properties\": {\n                \"id\": {\n                    \"title\": \"Id\",\n                    \"type\": \"string\"\n                },\n                \"resource_name\": {\n                    \"title\": \"Resource Name\",\n                    \"type\": \"string\"\n                }\n            },\n            \"required\": [\n                \"id\",\n                \"resource_name\"\n            ],\n            \"title\": \"Resource\",\n            \"type\": \"object\"\n        }\n    },\n    \"properties\": {\n        \"task_list\": {\n            \"default\": null,\n            \"items\": {\n                \"$ref\": \"#/$defs/ProjectTask\"\n            },\n            \"title\": \"Task List\",\n            \"type\": \"array\"\n        },\n        \"project\": {\n            \"$ref\": \"#/$defs/Project\",\n            \"default\": null\n        }\n    },\n    \"title\": \"AssignResourceResponse\",\n    \"type\": \"object\"\n}\n        # IMPORTANT NOTE\n        1. ** EACH TASK SHOULD HAVE AT LEAST ONE RESOURCE ASSIGNED TO IT. **\n        2. ** THE RESOURCES SHOULD HAVE REQUIRED SKILLS AND EXPERIENCE TO COMPLETE THE TASKS. **\n    "
+                                }
+                            ]
+                        },
+                        {
+                            "metadata": {},
+                            "content_type": "message",
+                            "role": "user",
+                            "items": [
+                                {
+                                    "metadata": {},
+                                    "content_type": "text",
+                                    "text": "{\"task_list\": [{\"id\": \"1\", \"task_name\": \"Define Game Requirements and Scope\", \"task_description\": \"Gather and document the functional and non-functional requirements for the Snake Eat Egg game, including gameplay mechanics, user interface, platforms, and performance expectations.\", \"project_id\": \"Snake Eat Egg Project\", \"parent_task\": null, \"child_tasks\": [\"2\", \"3\"], \"dependent_task\": null, \"estimated_effort_in_hours\": 8.0, \"status_reason\": \"Initial step to ensure clear understanding of project goals.\", \"outline_level\": 1, \"assigned_to\": null, \"required_skills\": [\"Requirements Analysis\"], \"is_milestone\": false, \"deliverables\": [\"Requirements Document\"], \"status\": \"Not Started\"}, {\"id\": \"2\", \"task_name\": \"Design Game Architecture\", \"task_description\": \"Create the overall architecture for the game, including main modules (game loop, input handling, rendering, collision detection, scoring, etc.), and select the technology stack.\", \"project_id\": \"Snake Eat Egg Project\", \"parent_task\": \"1\", \"child_tasks\": [\"4a\", \"5\"], \"dependent_task\": [\"1\"], \"estimated_effort_in_hours\": 12.0, \"status_reason\": \"Architecture design is required before implementation.\", \"outline_level\": 2, \"assigned_to\": null, \"required_skills\": [\"Game Design\", \"Software Architecture\"], \"is_milestone\": false, \"deliverables\": [\"Architecture Diagram\", \"Technology Stack Decision\"], \"status\": \"Not Started\"}, {\"id\": \"3\", \"task_name\": \"Create Initial Art and Asset List\", \"task_description\": \"Identify and list all required game assets (snake sprites, egg sprites, background, UI elements, sound effects, etc.) and create initial placeholder art or source free assets.\", \"project_id\": \"Snake Eat Egg Project\", \"parent_task\": \"1\", \"child_tasks\": [\"6a\", \"6b\"], \"dependent_task\": [\"1\"], \"estimated_effort_in_hours\": 8.0, \"status_reason\": \"Assets are needed for early development and prototyping.\", \"outline_level\": 2, \"assigned_to\": null, \"required_skills\": [\"Art Design\", \"Asset Management\"], \"is_milestone\": false, \"deliverables\": [\"Asset List\", \"Placeholder Art\"], \"status\": \"Not Started\"}, {\"id\": \"6\", \"task_name\": \"Finalize Assets\", \"task_description\": \"Aggregate task representing the completion of both final art and audio assets, serving as a parent for asset integration.\", \"project_id\": \"Snake Eat Egg Project\", \"parent_task\": \"3\", \"child_tasks\": [\"6a\", \"6b\", \"9\"], \"dependent_task\": [\"3\"], \"estimated_effort_in_hours\": 0.0, \"status_reason\": \"Virtual/aggregate node for asset readiness.\", \"outline_level\": 3, \"assigned_to\": null, \"required_skills\": [], \"is_milestone\": false, \"deliverables\": [], \"status\": \"Not Started\"}, {\"id\": \"6a\", \"task_name\": \"Produce Final Game Art Assets\", \"task_description\": \"Produce or source the final versions of all game art assets based on the asset list (sprites, backgrounds, UI elements, etc.).\", \"project_id\": \"Snake Eat Egg Project\", \"parent_task\": \"6\", \"child_tasks\": [], \"dependent_task\": [\"3\"], \"estimated_effort_in_hours\": 12.0, \"status_reason\": \"Final art assets are needed for game polish.\", \"outline_level\": 4, \"assigned_to\": null, \"required_skills\": [\"Art Design\"], \"is_milestone\": false, \"deliverables\": [\"Final Art Assets\"], \"status\": \"Not Started\"}, {\"id\": \"6b\", \"task_name\": \"Produce Final Audio Assets\", \"task_description\": \"Produce or source the final versions of all game audio assets based on the asset list (sound effects, background music, etc.).\", \"project_id\": \"Snake Eat Egg Project\", \"parent_task\": \"6\", \"child_tasks\": [], \"dependent_task\": [\"3\"], \"estimated_effort_in_hours\": 12.0, \"status_reason\": \"Final audio assets are needed for game polish.\", \"outline_level\": 4, \"assigned_to\": null, \"required_skills\": [\"Audio Production\"], \"is_milestone\": false, \"deliverables\": [\"Final Audio Assets\"], \"status\": \"Not Started\"}, {\"id\": \"9\", \"task_name\": \"Integrate Art and Audio Assets into Game\", \"task_description\": \"Replace placeholder assets with final art and audio in the game, ensuring correct display and playback. This task requires both art (6a) and audio (6b) assets to be completed. It is a child of the 'Finalize Assets' aggregate node for clarity in WBS.\", \"project_id\": \"Snake Eat Egg Project\", \"parent_task\": \"6\", \"child_tasks\": [\"10a\"], \"dependent_task\": [\"6a\", \"6b\"], \"estimated_effort_in_hours\": 8.0, \"status_reason\": \"Integration of final assets is needed for a polished game.\", \"outline_level\": 4, \"assigned_to\": null, \"required_skills\": [\"Programming\", \"Asset Integration\"], \"is_milestone\": false, \"deliverables\": [\"Integrated Assets\"], \"status\": \"Not Started\"}, {\"id\": \"4a\", \"task_name\": \"Implement Main Game Loop and Snake Movement\", \"task_description\": \"Develop the main game loop and implement snake movement logic, including input handling and movement updates.\", \"project_id\": \"Snake Eat Egg Project\", \"parent_task\": \"2\", \"child_tasks\": [\"4b\"], \"dependent_task\": [\"2\"], \"estimated_effort_in_hours\": 12.0, \"status_reason\": \"Main game loop and movement are foundational for further mechanics.\", \"outline_level\": 3, \"assigned_to\": null, \"required_skills\": [\"Programming\", \"Game Development\"], \"is_milestone\": false, \"deliverables\": [\"Game Loop Code\", \"Snake Movement Implementation\"], \"status\": \"Not Started\"}, {\"id\": \"4b\", \"task_name\": \"Implement Egg Spawning and Collision Detection\", \"task_description\": \"Implement logic for spawning eggs on the game field and detecting collisions between the snake and eggs or boundaries.\", \"project_id\": \"Snake Eat Egg Project\", \"parent_task\": \"4a\", \"child_tasks\": [\"7\"], \"dependent_task\": [\"4a\"], \"estimated_effort_in_hours\": 12.0, \"status_reason\": \"Egg spawning and collision detection are essential for gameplay progression.\", \"outline_level\": 4, \"assigned_to\": null, \"required_skills\": [\"Programming\", \"Game Development\"], \"is_milestone\": false, \"deliverables\": [\"Egg Spawning Logic\", \"Collision Detection Implementation\"], \"status\": \"Not Started\"}, {\"id\": \"5\", \"task_name\": \"Design User Interface Layout\", \"task_description\": \"Design the layout for the game's user interface, including score display, start/restart buttons, and game over screen.\", \"project_id\": \"Snake Eat Egg Project\", \"parent_task\": \"2\", \"child_tasks\": [\"8\"], \"dependent_task\": [\"2\"], \"estimated_effort_in_hours\": 8.0, \"status_reason\": \"UI design is needed for user interaction.\", \"outline_level\": 3, \"assigned_to\": null, \"required_skills\": [\"UI/UX Design\"], \"is_milestone\": false, \"deliverables\": [\"UI Layout Mockups\"], \"status\": \"Not Started\"}, {\"id\": \"7\", \"task_name\": \"Implement Egg Consumption and Scoring System\", \"task_description\": \"Develop the logic for the snake to consume eggs, update the score, and handle snake growth.\", \"project_id\": \"Snake Eat Egg Project\", \"parent_task\": \"4b\", \"child_tasks\": [\"10a\"], \"dependent_task\": [\"4b\"], \"estimated_effort_in_hours\": 16.0, \"status_reason\": \"Egg consumption and scoring are core gameplay features.\", \"outline_level\": 5, \"assigned_to\": null, \"required_skills\": [\"Programming\"], \"is_milestone\": false, \"deliverables\": [\"Egg Consumption Logic\", \"Scoring System\"], \"status\": \"Not Started\"}, {\"id\": \"8\", \"task_name\": \"Implement User Interface\", \"task_description\": \"Develop the user interface based on the UI layout, including score display, buttons, and game over screen.\", \"project_id\": \"Snake Eat Egg Project\", \"parent_task\": \"5\", \"child_tasks\": [\"10a\"], \"dependent_task\": [\"5\"], \"estimated_effort_in_hours\": 16.0, \"status_reason\": \"UI implementation is required for user interaction.\", \"outline_level\": 4, \"assigned_to\": null, \"required_skills\": [\"Programming\", \"UI Development\"], \"is_milestone\": false, \"deliverables\": [\"UI Implementation\"], \"status\": \"Not Started\"}, {\"id\": \"10a\", \"task_name\": \"Conduct Playtesting Sessions\", \"task_description\": \"Organize and conduct playtesting sessions to gather feedback and identify bugs or gameplay issues.\", \"project_id\": \"Snake Eat Egg Project\", \"parent_task\": null, \"child_tasks\": [\"10b\"], \"dependent_task\": [\"7\", \"8\", \"9\"], \"estimated_effort_in_hours\": 8.0, \"status_reason\": \"Playtesting is essential to identify issues and gather feedback.\", \"outline_level\": 5, \"assigned_to\": null, \"required_skills\": [\"Testing\"], \"is_milestone\": false, \"deliverables\": [\"Playtest Reports\"], \"status\": \"Not Started\"}, {\"id\": \"10b\", \"task_name\": \"Compile and Prioritize Bug List\", \"task_description\": \"Review playtesting feedback, compile a list of identified bugs and issues, and prioritize them for fixing.\", \"project_id\": \"Snake Eat Egg Project\", \"parent_task\": \"10a\", \"child_tasks\": [\"10c\"], \"dependent_task\": [\"10a\"], \"estimated_effort_in_hours\": 4.0, \"status_reason\": \"Prioritization ensures critical bugs are addressed first.\", \"outline_level\": 6, \"assigned_to\": null, \"required_skills\": [\"Testing\", \"Project Management\"], \"is_milestone\": false, \"deliverables\": [\"Prioritized Bug List\"], \"status\": \"Not Started\"}, {\"id\": \"10c\", \"task_name\": \"Fix Identified Bugs\", \"task_description\": \"Address and resolve the prioritized bugs and issues found during playtesting.\", \"project_id\": \"Snake Eat Egg Project\", \"parent_task\": \"10b\", \"child_tasks\": [\"11\"], \"dependent_task\": [\"10b\"], \"estimated_effort_in_hours\": 12.0, \"status_reason\": \"Bug fixing is required for a stable release.\", \"outline_level\": 7, \"assigned_to\": null, \"required_skills\": [\"Debugging\", \"Programming\"], \"is_milestone\": false, \"deliverables\": [\"Fixed Issues\"], \"status\": \"Not Started\"}, {\"id\": \"11\", \"task_name\": \"Prepare Game Documentation and Release Package\", \"task_description\": \"Write user documentation, developer notes, and prepare the game for release (packaging, versioning, etc.).\", \"project_id\": \"Snake Eat Egg Project\", \"parent_task\": \"10c\", \"child_tasks\": null, \"dependent_task\": [\"10c\"], \"estimated_effort_in_hours\": 8.0, \"status_reason\": \"Documentation and packaging are required for project completion.\", \"outline_level\": 8, \"assigned_to\": null, \"required_skills\": [\"Documentation\", \"Release Management\"], \"is_milestone\": true, \"deliverables\": [\"User Guide\", \"Release Package\"], \"status\": \"Not Started\"}], \"project\": {\"name\": \"Snake Eat Egg Project\", \"description\": \"A project focused on developing a game or simulation where a snake eats eggs, likely inspired by the classic Snake game. The project may involve game design, programming, and testing of the snake's movement and egg consumption mechanics.\", \"customer\": null, \"estimated_start_date\": null, \"estimated_finish_date\": null, \"actual_start_date\": null, \"actual_finish_date\": null, \"estimated_effort_in_hours\": null, \"effort_completed_in_hours\": null, \"complete_percentage\": null, \"estimated_total_cost\": null, \"actual_total_cost\": null, \"cost_consumption_percentage\": null, \"project_type\": \"Other\", \"sow_expriation_date\": null, \"kick_off_partner_completed_and_minutes_published_date\": null, \"kick_off_internal_completed_and_minutes_published_date\": null, \"kick_off_customer_completed_and_minutes_published_date\": null, \"owner\": null, \"project_manager\": null, \"project_coordinator\": null, \"solution_architect\": null, \"client_name\": null, \"client_phone\": null, \"client_address\": null, \"client_email\": null, \"supplier_name\": null, \"supplier_phone\": null, \"supplier_address\": null, \"supplier_email\": null}}"
+                                }
+                            ]
+                        },
+                        {
+                            "ai_model_id": "gpt-4.1",
+                            "metadata": {
+                                "logprobs": null,
+                                "id": "chatcmpl-BgSnHtVsMtGGGaeIsgYfQaH3qF9Ti",
+                                "created": 1749460159,
+                                "system_fingerprint": "fp_07e970ab25",
+                                "usage": {
+                                    "prompt_tokens": 14748,
+                                    "completion_tokens": 14
+                                }
+                            },
+                            "content_type": "message",
+                            "role": "assistant",
+                            "items": [
+                                {
+                                    "metadata": {},
+                                    "content_type": "function_call",
+                                    "id": "call_rtrRlJ7ewFgKcYpZVQUwKsD8",
+                                    "name": "resource_plugin-find_available_resources",
+                                    "function_name": "find_available_resources",
+                                    "plugin_name": "resource_plugin",
+                                    "arguments": "{}"
+                                }
+                            ],
+                            "finish_reason": "tool_calls"
+                        },
+                        {
+                            "metadata": {},
+                            "content_type": "message",
+                            "role": "tool",
+                            "items": [
+                                {
+                                    "metadata": {},
+                                    "content_type": "function_result",
+                                    "id": "call_rtrRlJ7ewFgKcYpZVQUwKsD8",
+                                    "result": "Missing required argument(s): ['task']. Please revise the arguments to match the function signature.",
+                                    "name": "resource_plugin-find_available_resources",
+                                    "function_name": "find_available_resources",
+                                    "plugin_name": "resource_plugin"
+                                }
+                            ]
+                        },
+                        {
+                            "ai_model_id": "gpt-4.1",
+                            "metadata": {
+                                "logprobs": null,
+                                "id": "chatcmpl-BgSnJ6ts5KblZUqZMcRbqd3u62c13",
+                                "created": 1749460161,
+                                "system_fingerprint": "fp_07e970ab25",
+                                "usage": {
+                                    "prompt_tokens": 14790,
+                                    "completion_tokens": 466
+                                }
+                            },
+                            "content_type": "message",
+                            "role": "assistant",
+                            "items": [
+                                {
+                                    "metadata": {},
+                                    "content_type": "function_call",
+                                    "id": "call_JTS9HQ6YODgLxBJHGnfUuq7p",
+                                    "name": "resource_plugin-assign_resources_to_task",
+                                    "function_name": "assign_resources_to_task",
+                                    "plugin_name": "resource_plugin",
+                                    "arguments": "{\"resources\": [{\"required_skills\": [\"Requirements Analysis\"]}]}"
+                                },
+                                {
+                                    "metadata": {},
+                                    "content_type": "function_call",
+                                    "id": "call_D0FLscURtjDH5A1oUcKPpqqD",
+                                    "name": "resource_plugin-assign_resources_to_task",
+                                    "function_name": "assign_resources_to_task",
+                                    "plugin_name": "resource_plugin",
+                                    "arguments": "{\"resources\": [{\"required_skills\": [\"Game Design\", \"Software Architecture\"]}]}"
+                                },
+                                {
+                                    "metadata": {},
+                                    "content_type": "function_call",
+                                    "id": "call_Nb7iVgjyTUjSW6nYLRTS55fV",
+                                    "name": "resource_plugin-assign_resources_to_task",
+                                    "function_name": "assign_resources_to_task",
+                                    "plugin_name": "resource_plugin",
+                                    "arguments": "{\"resources\": [{\"required_skills\": [\"Art Design\", \"Asset Management\"]}]}"
+                                },
+                                {
+                                    "metadata": {},
+                                    "content_type": "function_call",
+                                    "id": "call_Wv8dBWA05GOIqxvEf9IpOWZ3",
+                                    "name": "resource_plugin-assign_resources_to_task",
+                                    "function_name": "assign_resources_to_task",
+                                    "plugin_name": "resource_plugin",
+                                    "arguments": "{\"resources\": [{\"required_skills\": []}]}"
+                                },
+                                {
+                                    "metadata": {},
+                                    "content_type": "function_call",
+                                    "id": "call_HhAXaYnjrZ0PrKGngnNzua1X",
+                                    "name": "resource_plugin-assign_resources_to_task",
+                                    "function_name": "assign_resources_to_task",
+                                    "plugin_name": "resource_plugin",
+                                    "arguments": "{\"resources\": [{\"required_skills\": [\"Art Design\"]}]}"
+                                },
+                                {
+                                    "metadata": {},
+                                    "content_type": "function_call",
+                                    "id": "call_oQxhxymMWN3cMsWoUNJmPw9t",
+                                    "name": "resource_plugin-assign_resources_to_task",
+                                    "function_name": "assign_resources_to_task",
+                                    "plugin_name": "resource_plugin",
+                                    "arguments": "{\"resources\": [{\"required_skills\": [\"Audio Production\"]}]}"
+                                },
+                                {
+                                    "metadata": {},
+                                    "content_type": "function_call",
+                                    "id": "call_0tRGCaq93yZk3hjDJhjoAWfd",
+                                    "name": "resource_plugin-assign_resources_to_task",
+                                    "function_name": "assign_resources_to_task",
+                                    "plugin_name": "resource_plugin",
+                                    "arguments": "{\"resources\": [{\"required_skills\": [\"Programming\", \"Asset Integration\"]}]}"
+                                },
+                                {
+                                    "metadata": {},
+                                    "content_type": "function_call",
+                                    "id": "call_63CPb7pduTemES3rfQFfkE6C",
+                                    "name": "resource_plugin-assign_resources_to_task",
+                                    "function_name": "assign_resources_to_task",
+                                    "plugin_name": "resource_plugin",
+                                    "arguments": "{\"resources\": [{\"required_skills\": [\"Programming\", \"Game Development\"]}]}"
+                                },
+                                {
+                                    "metadata": {},
+                                    "content_type": "function_call",
+                                    "id": "call_9I1IQrNqJTtnOy2wYMj9OYkP",
+                                    "name": "resource_plugin-assign_resources_to_task",
+                                    "function_name": "assign_resources_to_task",
+                                    "plugin_name": "resource_plugin",
+                                    "arguments": "{\"resources\": [{\"required_skills\": [\"Programming\", \"Game Development\"]}]}"
+                                },
+                                {
+                                    "metadata": {},
+                                    "content_type": "function_call",
+                                    "id": "call_Aanh5vlgzGBZF5sNIb7OimcW",
+                                    "name": "resource_plugin-assign_resources_to_task",
+                                    "function_name": "assign_resources_to_task",
+                                    "plugin_name": "resource_plugin",
+                                    "arguments": "{\"resources\": [{\"required_skills\": [\"UI/UX Design\"]}]}"
+                                },
+                                {
+                                    "metadata": {},
+                                    "content_type": "function_call",
+                                    "id": "call_hhztWvlL4SNWSojkMKj4c13L",
+                                    "name": "resource_plugin-assign_resources_to_task",
+                                    "function_name": "assign_resources_to_task",
+                                    "plugin_name": "resource_plugin",
+                                    "arguments": "{\"resources\": [{\"required_skills\": [\"Programming\", \"UI Development\"]}]}"
+                                },
+                                {
+                                    "metadata": {},
+                                    "content_type": "function_call",
+                                    "id": "call_6u8K7KAdBuuRTO5cEKOVr5kq",
+                                    "name": "resource_plugin-assign_resources_to_task",
+                                    "function_name": "assign_resources_to_task",
+                                    "plugin_name": "resource_plugin",
+                                    "arguments": "{\"resources\": [{\"required_skills\": [\"Programming\"]}]}"
+                                },
+                                {
+                                    "metadata": {},
+                                    "content_type": "function_call",
+                                    "id": "call_8CZVLYa5ttNhtSpNJ2zegDla",
+                                    "name": "resource_plugin-assign_resources_to_task",
+                                    "function_name": "assign_resources_to_task",
+                                    "plugin_name": "resource_plugin",
+                                    "arguments": "{\"resources\": [{\"required_skills\": [\"Testing\"]}]}"
+                                },
+                                {
+                                    "metadata": {},
+                                    "content_type": "function_call",
+                                    "id": "call_i7oC0WhE6MGuJseEXctOHmfO",
+                                    "name": "resource_plugin-assign_resources_to_task",
+                                    "function_name": "assign_resources_to_task",
+                                    "plugin_name": "resource_plugin",
+                                    "arguments": "{\"resources\": [{\"required_skills\": [\"Testing\", \"Project Management\"]}]}"
+                                },
+                                {
+                                    "metadata": {},
+                                    "content_type": "function_call",
+                                    "id": "call_tPLMduk56P2Dtye0fQecMLn6",
+                                    "name": "resource_plugin-assign_resources_to_task",
+                                    "function_name": "assign_resources_to_task",
+                                    "plugin_name": "resource_plugin",
+                                    "arguments": "{\"resources\": [{\"required_skills\": [\"Debugging\", \"Programming\"]}]}"
+                                },
+                                {
+                                    "metadata": {},
+                                    "content_type": "function_call",
+                                    "id": "call_isglw9a2QUmjTpUMEgV09MAN",
+                                    "name": "resource_plugin-assign_resources_to_task",
+                                    "function_name": "assign_resources_to_task",
+                                    "plugin_name": "resource_plugin",
+                                    "arguments": "{\"resources\": [{\"required_skills\": [\"Documentation\", \"Release Management\"]}]}"
+                                }
+                            ],
+                            "finish_reason": "tool_calls"
+                        },
+                        {
+                            "metadata": {},
+                            "content_type": "message",
+                            "role": "tool",
+                            "items": [
+                                {
+                                    "metadata": {},
+                                    "content_type": "function_result",
+                                    "id": "call_JTS9HQ6YODgLxBJHGnfUuq7p",
+                                    "result": "Missing required argument(s): ['task']. Please revise the arguments to match the function signature.",
+                                    "name": "resource_plugin-assign_resources_to_task",
+                                    "function_name": "assign_resources_to_task",
+                                    "plugin_name": "resource_plugin"
+                                }
+                            ]
+                        },
+                        {
+                            "metadata": {},
+                            "content_type": "message",
+                            "role": "tool",
+                            "items": [
+                                {
+                                    "metadata": {},
+                                    "content_type": "function_result",
+                                    "id": "call_D0FLscURtjDH5A1oUcKPpqqD",
+                                    "result": "Missing required argument(s): ['task']. Please revise the arguments to match the function signature.",
+                                    "name": "resource_plugin-assign_resources_to_task",
+                                    "function_name": "assign_resources_to_task",
+                                    "plugin_name": "resource_plugin"
+                                }
+                            ]
+                        },
+                        {
+                            "metadata": {},
+                            "content_type": "message",
+                            "role": "tool",
+                            "items": [
+                                {
+                                    "metadata": {},
+                                    "content_type": "function_result",
+                                    "id": "call_Nb7iVgjyTUjSW6nYLRTS55fV",
+                                    "result": "Missing required argument(s): ['task']. Please revise the arguments to match the function signature.",
+                                    "name": "resource_plugin-assign_resources_to_task",
+                                    "function_name": "assign_resources_to_task",
+                                    "plugin_name": "resource_plugin"
+                                }
+                            ]
+                        },
+                        {
+                            "metadata": {},
+                            "content_type": "message",
+                            "role": "tool",
+                            "items": [
+                                {
+                                    "metadata": {},
+                                    "content_type": "function_result",
+                                    "id": "call_Wv8dBWA05GOIqxvEf9IpOWZ3",
+                                    "result": "Missing required argument(s): ['task']. Please revise the arguments to match the function signature.",
+                                    "name": "resource_plugin-assign_resources_to_task",
+                                    "function_name": "assign_resources_to_task",
+                                    "plugin_name": "resource_plugin"
+                                }
+                            ]
+                        },
+                        {
+                            "metadata": {},
+                            "content_type": "message",
+                            "role": "tool",
+                            "items": [
+                                {
+                                    "metadata": {},
+                                    "content_type": "function_result",
+                                    "id": "call_HhAXaYnjrZ0PrKGngnNzua1X",
+                                    "result": "Missing required argument(s): ['task']. Please revise the arguments to match the function signature.",
+                                    "name": "resource_plugin-assign_resources_to_task",
+                                    "function_name": "assign_resources_to_task",
+                                    "plugin_name": "resource_plugin"
+                                }
+                            ]
+                        },
+                        {
+                            "metadata": {},
+                            "content_type": "message",
+                            "role": "tool",
+                            "items": [
+                                {
+                                    "metadata": {},
+                                    "content_type": "function_result",
+                                    "id": "call_oQxhxymMWN3cMsWoUNJmPw9t",
+                                    "result": "Missing required argument(s): ['task']. Please revise the arguments to match the function signature.",
+                                    "name": "resource_plugin-assign_resources_to_task",
+                                    "function_name": "assign_resources_to_task",
+                                    "plugin_name": "resource_plugin"
+                                }
+                            ]
+                        },
+                        {
+                            "metadata": {},
+                            "content_type": "message",
+                            "role": "tool",
+                            "items": [
+                                {
+                                    "metadata": {},
+                                    "content_type": "function_result",
+                                    "id": "call_0tRGCaq93yZk3hjDJhjoAWfd",
+                                    "result": "Missing required argument(s): ['task']. Please revise the arguments to match the function signature.",
+                                    "name": "resource_plugin-assign_resources_to_task",
+                                    "function_name": "assign_resources_to_task",
+                                    "plugin_name": "resource_plugin"
+                                }
+                            ]
+                        },
+                        {
+                            "metadata": {},
+                            "content_type": "message",
+                            "role": "tool",
+                            "items": [
+                                {
+                                    "metadata": {},
+                                    "content_type": "function_result",
+                                    "id": "call_63CPb7pduTemES3rfQFfkE6C",
+                                    "result": "Missing required argument(s): ['task']. Please revise the arguments to match the function signature.",
+                                    "name": "resource_plugin-assign_resources_to_task",
+                                    "function_name": "assign_resources_to_task",
+                                    "plugin_name": "resource_plugin"
+                                }
+                            ]
+                        },
+                        {
+                            "metadata": {},
+                            "content_type": "message",
+                            "role": "tool",
+                            "items": [
+                                {
+                                    "metadata": {},
+                                    "content_type": "function_result",
+                                    "id": "call_9I1IQrNqJTtnOy2wYMj9OYkP",
+                                    "result": "Missing required argument(s): ['task']. Please revise the arguments to match the function signature.",
+                                    "name": "resource_plugin-assign_resources_to_task",
+                                    "function_name": "assign_resources_to_task",
+                                    "plugin_name": "resource_plugin"
+                                }
+                            ]
+                        },
+                        {
+                            "metadata": {},
+                            "content_type": "message",
+                            "role": "tool",
+                            "items": [
+                                {
+                                    "metadata": {},
+                                    "content_type": "function_result",
+                                    "id": "call_Aanh5vlgzGBZF5sNIb7OimcW",
+                                    "result": "Missing required argument(s): ['task']. Please revise the arguments to match the function signature.",
+                                    "name": "resource_plugin-assign_resources_to_task",
+                                    "function_name": "assign_resources_to_task",
+                                    "plugin_name": "resource_plugin"
+                                }
+                            ]
+                        },
+                        {
+                            "metadata": {},
+                            "content_type": "message",
+                            "role": "tool",
+                            "items": [
+                                {
+                                    "metadata": {},
+                                    "content_type": "function_result",
+                                    "id": "call_hhztWvlL4SNWSojkMKj4c13L",
+                                    "result": "Missing required argument(s): ['task']. Please revise the arguments to match the function signature.",
+                                    "name": "resource_plugin-assign_resources_to_task",
+                                    "function_name": "assign_resources_to_task",
+                                    "plugin_name": "resource_plugin"
+                                }
+                            ]
+                        },
+                        {
+                            "metadata": {},
+                            "content_type": "message",
+                            "role": "tool",
+                            "items": [
+                                {
+                                    "metadata": {},
+                                    "content_type": "function_result",
+                                    "id": "call_6u8K7KAdBuuRTO5cEKOVr5kq",
+                                    "result": "Missing required argument(s): ['task']. Please revise the arguments to match the function signature.",
+                                    "name": "resource_plugin-assign_resources_to_task",
+                                    "function_name": "assign_resources_to_task",
+                                    "plugin_name": "resource_plugin"
+                                }
+                            ]
+                        },
+                        {
+                            "metadata": {},
+                            "content_type": "message",
+                            "role": "tool",
+                            "items": [
+                                {
+                                    "metadata": {},
+                                    "content_type": "function_result",
+                                    "id": "call_8CZVLYa5ttNhtSpNJ2zegDla",
+                                    "result": "Missing required argument(s): ['task']. Please revise the arguments to match the function signature.",
+                                    "name": "resource_plugin-assign_resources_to_task",
+                                    "function_name": "assign_resources_to_task",
+                                    "plugin_name": "resource_plugin"
+                                }
+                            ]
+                        },
+                        {
+                            "metadata": {},
+                            "content_type": "message",
+                            "role": "tool",
+                            "items": [
+                                {
+                                    "metadata": {},
+                                    "content_type": "function_result",
+                                    "id": "call_i7oC0WhE6MGuJseEXctOHmfO",
+                                    "result": "Missing required argument(s): ['task']. Please revise the arguments to match the function signature.",
+                                    "name": "resource_plugin-assign_resources_to_task",
+                                    "function_name": "assign_resources_to_task",
+                                    "plugin_name": "resource_plugin"
+                                }
+                            ]
+                        },
+                        {
+                            "metadata": {},
+                            "content_type": "message",
+                            "role": "tool",
+                            "items": [
+                                {
+                                    "metadata": {},
+                                    "content_type": "function_result",
+                                    "id": "call_tPLMduk56P2Dtye0fQecMLn6",
+                                    "result": "Missing required argument(s): ['task']. Please revise the arguments to match the function signature.",
+                                    "name": "resource_plugin-assign_resources_to_task",
+                                    "function_name": "assign_resources_to_task",
+                                    "plugin_name": "resource_plugin"
+                                }
+                            ]
+                        },
+                        {
+                            "metadata": {},
+                            "content_type": "message",
+                            "role": "tool",
+                            "items": [
+                                {
+                                    "metadata": {},
+                                    "content_type": "function_result",
+                                    "id": "call_isglw9a2QUmjTpUMEgV09MAN",
+                                    "result": "Missing required argument(s): ['task']. Please revise the arguments to match the function signature.",
+                                    "name": "resource_plugin-assign_resources_to_task",
+                                    "function_name": "assign_resources_to_task",
+                                    "plugin_name": "resource_plugin"
+                                }
+                            ]
+                        },
+                        {
+                            "ai_model_id": "gpt-4.1",
+                            "metadata": {
+                                "logprobs": null,
+                                "id": "chatcmpl-BgSnNKAm9M4A3BylP1Xc4qwnsmiGW",
+                                "created": 1749460165,
+                                "system_fingerprint": "fp_07e970ab25",
+                                "usage": {
+                                    "prompt_tokens": 15570,
+                                    "completion_tokens": 3668
+                                }
+                            },
+                            "content_type": "message",
+                            "role": "assistant",
+                            "name": "AssignResourcesAgent",
+                            "items": [
+                                {
+                                    "metadata": {},
+                                    "content_type": "text",
+                                    "text": "{\n  \"task_list\": [\n    {\n      \"id\": \"1\",\n      \"task_name\": \"Define Game Requirements and Scope\",\n      \"task_description\": \"Gather and document the functional and non-functional requirements for the Snake Eat Egg game, including gameplay mechanics, user interface, platforms, and performance expectations.\",\n      \"project_id\": \"Snake Eat Egg Project\",\n      \"parent_task\": null,\n      \"child_tasks\": [\n        \"2\",\n        \"3\"\n      ],\n      \"dependent_task\": null,\n      \"estimated_effort_in_hours\": 8.0,\n      \"status_reason\": \"Initial step to ensure clear understanding of project goals.\",\n      \"outline_level\": 1,\n      \"assigned_to\": {\n        \"id\": \"R1\",\n        \"resource_name\": \"Business Analyst\"\n      },\n      \"required_skills\": [\n        \"Requirements Analysis\"\n      ],\n      \"is_milestone\": false,\n      \"deliverables\": [\n        \"Requirements Document\"\n      ],\n      \"status\": \"Not Started\"\n    },\n    {\n      \"id\": \"2\",\n      \"task_name\": \"Design Game Architecture\",\n      \"task_description\": \"Create the overall architecture for the game, including main modules (game loop, input handling, rendering, collision detection, scoring, etc.), and select the technology stack.\",\n      \"project_id\": \"Snake Eat Egg Project\",\n      \"parent_task\": \"1\",\n      \"child_tasks\": [\n        \"4a\",\n        \"5\"\n      ],\n      \"dependent_task\": [\n        \"1\"\n      ],\n      \"estimated_effort_in_hours\": 12.0,\n      \"status_reason\": \"Architecture design is required before implementation.\",\n      \"outline_level\": 2,\n      \"assigned_to\": {\n        \"id\": \"R2\",\n        \"resource_name\": \"Game Architect\"\n      },\n      \"required_skills\": [\n        \"Game Design\",\n        \"Software Architecture\"\n      ],\n      \"is_milestone\": false,\n      \"deliverables\": [\n        \"Architecture Diagram\",\n        \"Technology Stack Decision\"\n      ],\n      \"status\": \"Not Started\"\n    },\n    {\n      \"id\": \"3\",\n      \"task_name\": \"Create Initial Art and Asset List\",\n      \"task_description\": \"Identify and list all required game assets (snake sprites, egg sprites, background, UI elements, sound effects, etc.) and create initial placeholder art or source free assets.\",\n      \"project_id\": \"Snake Eat Egg Project\",\n      \"parent_task\": \"1\",\n      \"child_tasks\": [\n        \"6a\",\n        \"6b\"\n      ],\n      \"dependent_task\": [\n        \"1\"\n      ],\n      \"estimated_effort_in_hours\": 8.0,\n      \"status_reason\": \"Assets are needed for early development and prototyping.\",\n      \"outline_level\": 2,\n      \"assigned_to\": {\n        \"id\": \"R3\",\n        \"resource_name\": \"Game Artist\"\n      },\n      \"required_skills\": [\n        \"Art Design\",\n        \"Asset Management\"\n      ],\n      \"is_milestone\": false,\n      \"deliverables\": [\n        \"Asset List\",\n        \"Placeholder Art\"\n      ],\n      \"status\": \"Not Started\"\n    },\n    {\n      \"id\": \"6\",\n      \"task_name\": \"Finalize Assets\",\n      \"task_description\": \"Aggregate task representing the completion of both final art and audio assets, serving as a parent for asset integration.\",\n      \"project_id\": \"Snake Eat Egg Project\",\n      \"parent_task\": \"3\",\n      \"child_tasks\": [\n        \"6a\",\n        \"6b\",\n        \"9\"\n      ],\n      \"dependent_task\": [\n        \"3\"\n      ],\n      \"estimated_effort_in_hours\": 0.0,\n      \"status_reason\": \"Virtual/aggregate node for asset readiness.\",\n      \"outline_level\": 3,\n      \"assigned_to\": {\n        \"id\": \"R4\",\n        \"resource_name\": \"Art/Audio Lead\"\n      },\n      \"required_skills\": [],\n      \"is_milestone\": false,\n      \"deliverables\": [],\n      \"status\": \"Not Started\"\n    },\n    {\n      \"id\": \"6a\",\n      \"task_name\": \"Produce Final Game Art Assets\",\n      \"task_description\": \"Produce or source the final versions of all game art assets based on the asset list (sprites, backgrounds, UI elements, etc.).\",\n      \"project_id\": \"Snake Eat Egg Project\",\n      \"parent_task\": \"6\",\n      \"child_tasks\": [],\n      \"dependent_task\": [\n        \"3\"\n      ],\n      \"estimated_effort_in_hours\": 12.0,\n      \"status_reason\": \"Final art assets are needed for game polish.\",\n      \"outline_level\": 4,\n      \"assigned_to\": {\n        \"id\": \"R3\",\n        \"resource_name\": \"Game Artist\"\n      },\n      \"required_skills\": [\n        \"Art Design\"\n      ],\n      \"is_milestone\": false,\n      \"deliverables\": [\n        \"Final Art Assets\"\n      ],\n      \"status\": \"Not Started\"\n    },\n    {\n      \"id\": \"6b\",\n      \"task_name\": \"Produce Final Audio Assets\",\n      \"task_description\": \"Produce or source the final versions of all game audio assets based on the asset list (sound effects, background music, etc.).\",\n      \"project_id\": \"Snake Eat Egg Project\",\n      \"parent_task\": \"6\",\n      \"child_tasks\": [],\n      \"dependent_task\": [\n        \"3\"\n      ],\n      \"estimated_effort_in_hours\": 12.0,\n      \"status_reason\": \"Final audio assets are needed for game polish.\",\n      \"outline_level\": 4,\n      \"assigned_to\": {\n        \"id\": \"R5\",\n        \"resource_name\": \"Audio Designer\"\n      },\n      \"required_skills\": [\n        \"Audio Production\"\n      ],\n      \"is_milestone\": false,\n      \"deliverables\": [\n        \"Final Audio Assets\"\n      ],\n      \"status\": \"Not Started\"\n    },\n    {\n      \"id\": \"9\",\n      \"task_name\": \"Integrate Art and Audio Assets into Game\",\n      \"task_description\": \"Replace placeholder assets with final art and audio in the game, ensuring correct display and playback. This task requires both art (6a) and audio (6b) assets to be completed. It is a child of the 'Finalize Assets' aggregate node for clarity in WBS.\",\n      \"project_id\": \"Snake Eat Egg Project\",\n      \"parent_task\": \"6\",\n      \"child_tasks\": [\n        \"10a\"\n      ],\n      \"dependent_task\": [\n        \"6a\",\n        \"6b\"\n      ],\n      \"estimated_effort_in_hours\": 8.0,\n      \"status_reason\": \"Integration of final assets is needed for a polished game.\",\n      \"outline_level\": 4,\n      \"assigned_to\": {\n        \"id\": \"R6\",\n        \"resource_name\": \"Game Developer\"\n      },\n      \"required_skills\": [\n        \"Programming\",\n        \"Asset Integration\"\n      ],\n      \"is_milestone\": false,\n      \"deliverables\": [\n        \"Integrated Assets\"\n      ],\n      \"status\": \"Not Started\"\n    },\n    {\n      \"id\": \"4a\",\n      \"task_name\": \"Implement Main Game Loop and Snake Movement\",\n      \"task_description\": \"Develop the main game loop and implement snake movement logic, including input handling and movement updates.\",\n      \"project_id\": \"Snake Eat Egg Project\",\n      \"parent_task\": \"2\",\n      \"child_tasks\": [\n        \"4b\"\n      ],\n      \"dependent_task\": [\n        \"2\"\n      ],\n      \"estimated_effort_in_hours\": 12.0,\n      \"status_reason\": \"Main game loop and movement are foundational for further mechanics.\",\n      \"outline_level\": 3,\n      \"assigned_to\": {\n        \"id\": \"R6\",\n        \"resource_name\": \"Game Developer\"\n      },\n      \"required_skills\": [\n        \"Programming\",\n        \"Game Development\"\n      ],\n      \"is_milestone\": false,\n      \"deliverables\": [\n        \"Game Loop Code\",\n        \"Snake Movement Implementation\"\n      ],\n      \"status\": \"Not Started\"\n    },\n    {\n      \"id\": \"4b\",\n      \"task_name\": \"Implement Egg Spawning and Collision Detection\",\n      \"task_description\": \"Implement logic for spawning eggs on the game field and detecting collisions between the snake and eggs or boundaries.\",\n      \"project_id\": \"Snake Eat Egg Project\",\n      \"parent_task\": \"4a\",\n      \"child_tasks\": [\n        \"7\"\n      ],\n      \"dependent_task\": [\n        \"4a\"\n      ],\n      \"estimated_effort_in_hours\": 12.0,\n      \"status_reason\": \"Egg spawning and collision detection are essential for gameplay progression.\",\n      \"outline_level\": 4,\n      \"assigned_to\": {\n        \"id\": \"R6\",\n        \"resource_name\": \"Game Developer\"\n      },\n      \"required_skills\": [\n        \"Programming\",\n        \"Game Development\"\n      ],\n      \"is_milestone\": false,\n      \"deliverables\": [\n        \"Egg Spawning Logic\",\n        \"Collision Detection Implementation\"\n      ],\n      \"status\": \"Not Started\"\n    },\n    {\n      \"id\": \"5\",\n      \"task_name\": \"Design User Interface Layout\",\n      \"task_description\": \"Design the layout for the game's user interface, including score display, start/restart buttons, and game over screen.\",\n      \"project_id\": \"Snake Eat Egg Project\",\n      \"parent_task\": \"2\",\n      \"child_tasks\": [\n        \"8\"\n      ],\n      \"dependent_task\": [\n        \"2\"\n      ],\n      \"estimated_effort_in_hours\": 8.0,\n      \"status_reason\": \"UI design is needed for user interaction.\",\n      \"outline_level\": 3,\n      \"assigned_to\": {\n        \"id\": \"R7\",\n        \"resource_name\": \"UI/UX Designer\"\n      },\n      \"required_skills\": [\n        \"UI/UX Design\"\n      ],\n      \"is_milestone\": false,\n      \"deliverables\": [\n        \"UI Layout Mockups\"\n      ],\n      \"status\": \"Not Started\"\n    },\n    {\n      \"id\": \"8\",\n      \"task_name\": \"Implement User Interface\",\n      \"task_description\": \"Develop the user interface based on the UI layout, including score display, buttons, and game over screen.\",\n      \"project_id\": \"Snake Eat Egg Project\",\n      \"parent_task\": \"5\",\n      \"child_tasks\": [\n        \"10a\"\n      ],\n      \"dependent_task\": [\n        \"5\"\n      ],\n      \"estimated_effort_in_hours\": 16.0,\n      \"status_reason\": \"UI implementation is required for user interaction.\",\n      \"outline_level\": 4,\n      \"assigned_to\": {\n        \"id\": \"R8\",\n        \"resource_name\": \"UI Developer\"\n      },\n      \"required_skills\": [\n        \"Programming\",\n        \"UI Development\"\n      ],\n      \"is_milestone\": false,\n      \"deliverables\": [\n        \"UI Implementation\"\n      ],\n      \"status\": \"Not Started\"\n    },\n    {\n      \"id\": \"7\",\n      \"task_name\": \"Implement Egg Consumption and Scoring System\",\n      \"task_description\": \"Develop the logic for the snake to consume eggs, update the score, and handle snake growth.\",\n      \"project_id\": \"Snake Eat Egg Project\",\n      \"parent_task\": \"4b\",\n      \"child_tasks\": [\n        \"10a\"\n      ],\n      \"dependent_task\": [\n        \"4b\"\n      ],\n      \"estimated_effort_in_hours\": 16.0,\n      \"status_reason\": \"Egg consumption and scoring are core gameplay features.\",\n      \"outline_level\": 5,\n      \"assigned_to\": {\n        \"id\": \"R6\",\n        \"resource_name\": \"Game Developer\"\n      },\n      \"required_skills\": [\n        \"Programming\"\n      ],\n      \"is_milestone\": false,\n      \"deliverables\": [\n        \"Egg Consumption Logic\",\n        \"Scoring System\"\n      ],\n      \"status\": \"Not Started\"\n    },\n    {\n      \"id\": \"10a\",\n      \"task_name\": \"Conduct Playtesting Sessions\",\n      \"task_description\": \"Organize and conduct playtesting sessions to gather feedback and identify bugs or gameplay issues.\",\n      \"project_id\": \"Snake Eat Egg Project\",\n      \"parent_task\": null,\n      \"child_tasks\": [\n        \"10b\"\n      ],\n      \"dependent_task\": [\n        \"7\",\n        \"8\",\n        \"9\"\n      ],\n      \"estimated_effort_in_hours\": 8.0,\n      \"status_reason\": \"Playtesting is essential to identify issues and gather feedback.\",\n      \"outline_level\": 5,\n      \"assigned_to\": {\n        \"id\": \"R9\",\n        \"resource_name\": \"QA Tester\"\n      },\n      \"required_skills\": [\n        \"Testing\"\n      ],\n      \"is_milestone\": false,\n      \"deliverables\": [\n        \"Playtest Reports\"\n      ],\n      \"status\": \"Not Started\"\n    },\n    {\n      \"id\": \"10b\",\n      \"task_name\": \"Compile and Prioritize Bug List\",\n      \"task_description\": \"Review playtesting feedback, compile a list of identified bugs and issues, and prioritize them for fixing.\",\n      \"project_id\": \"Snake Eat Egg Project\",\n      \"parent_task\": \"10a\",\n      \"child_tasks\": [\n        \"10c\"\n      ],\n      \"dependent_task\": [\n        \"10a\"\n      ],\n      \"estimated_effort_in_hours\": 4.0,\n      \"status_reason\": \"Prioritization ensures critical bugs are addressed first.\",\n      \"outline_level\": 6,\n      \"assigned_to\": {\n        \"id\": \"R10\",\n        \"resource_name\": \"QA Lead\"\n      },\n      \"required_skills\": [\n        \"Testing\",\n        \"Project Management\"\n      ],\n      \"is_milestone\": false,\n      \"deliverables\": [\n        \"Prioritized Bug List\"\n      ],\n      \"status\": \"Not Started\"\n    },\n    {\n      \"id\": \"10c\",\n      \"task_name\": \"Fix Identified Bugs\",\n      \"task_description\": \"Address and resolve the prioritized bugs and issues found during playtesting.\",\n      \"project_id\": \"Snake Eat Egg Project\",\n      \"parent_task\": \"10b\",\n      \"child_tasks\": [\n        \"11\"\n      ],\n      \"dependent_task\": [\n        \"10b\"\n      ],\n      \"estimated_effort_in_hours\": 12.0,\n      \"status_reason\": \"Bug fixing is required for a stable release.\",\n      \"outline_level\": 7,\n      \"assigned_to\": {\n        \"id\": \"R6\",\n        \"resource_name\": \"Game Developer\"\n      },\n      \"required_skills\": [\n        \"Debugging\",\n        \"Programming\"\n      ],\n      \"is_milestone\": false,\n      \"deliverables\": [\n        \"Fixed Issues\"\n      ],\n      \"status\": \"Not Started\"\n    },\n    {\n      \"id\": \"11\",\n      \"task_name\": \"Prepare Game Documentation and Release Package\",\n      \"task_description\": \"Write user documentation, developer notes, and prepare the game for release (packaging, versioning, etc.).\",\n      \"project_id\": \"Snake Eat Egg Project\",\n      \"parent_task\": \"10c\",\n      \"child_tasks\": null,\n      \"dependent_task\": [\n        \"10c\"\n      ],\n      \"estimated_effort_in_hours\": 8.0,\n      \"status_reason\": \"Documentation and packaging are required for project completion.\",\n      \"outline_level\": 8,\n      \"assigned_to\": {\n        \"id\": \"R11\",\n        \"resource_name\": \"Technical Writer\"\n      },\n      \"required_skills\": [\n        \"Documentation\",\n        \"Release Management\"\n      ],\n      \"is_milestone\": true,\n      \"deliverables\": [\n        \"User Guide\",\n        \"Release Package\"\n      ],\n      \"status\": \"Not Started\"\n    }\n  ],\n  \"project\": {\n    \"name\": \"Snake Eat Egg Project\",\n    \"description\": \"A project focused on developing a game or simulation where a snake eats eggs, likely inspired by the classic Snake game. The project may involve game design, programming, and testing of the snake's movement and egg consumption mechanics.\",\n    \"customer\": null,\n    \"estimated_start_date\": null,\n    \"estimated_finish_date\": null,\n    \"actual_start_date\": null,\n    \"actual_finish_date\": null,\n    \"estimated_effort_in_hours\": null,\n    \"effort_completed_in_hours\": null,\n    \"complete_percentage\": null,\n    \"estimated_total_cost\": null,\n    \"actual_total_cost\": null,\n    \"cost_consumption_percentage\": null,\n    \"project_type\": \"Other\",\n    \"sow_expriation_date\": null,\n    \"kick_off_partner_completed_and_minutes_published_date\": null,\n    \"kick_off_internal_completed_and_minutes_published_date\": null,\n    \"kick_off_customer_completed_and_minutes_published_date\": null,\n    \"owner\": null,\n    \"project_manager\": null,\n    \"project_coordinator\": null,\n    \"solution_architect\": null,\n    \"client_name\": null,\n    \"client_phone\": null,\n    \"client_address\": null,\n    \"client_email\": null,\n    \"supplier_name\": null,\n    \"supplier_phone\": null,\n    \"supplier_address\": null,\n    \"supplier_email\": null\n  }\n}"
+                                }
+                            ],
+                            "finish_reason": "stop"
+                        },
+                        {
+                            "metadata": {},
+                            "content_type": "message",
+                            "role": "assistant",
+                            "items": [
+                                {
+                                    "metadata": {},
+                                    "content_type": "text",
+                                    "text": "{\n  \"task_list\": [\n    {\n      \"id\": \"1\",\n      \"task_name\": \"Define Game Requirements and Scope\",\n      \"task_description\": \"Gather and document the functional and non-functional requirements for the Snake Eat Egg game, including gameplay mechanics, user interface, platforms, and performance expectations.\",\n      \"project_id\": \"Snake Eat Egg Project\",\n      \"parent_task\": null,\n      \"child_tasks\": [\n        \"2\",\n        \"3\"\n      ],\n      \"dependent_task\": null,\n      \"estimated_effort_in_hours\": 8.0,\n      \"status_reason\": \"Initial step to ensure clear understanding of project goals.\",\n      \"outline_level\": 1,\n      \"assigned_to\": {\n        \"id\": \"R1\",\n        \"resource_name\": \"Business Analyst\"\n      },\n      \"required_skills\": [\n        \"Requirements Analysis\"\n      ],\n      \"is_milestone\": false,\n      \"deliverables\": [\n        \"Requirements Document\"\n      ],\n      \"status\": \"Not Started\"\n    },\n    {\n      \"id\": \"2\",\n      \"task_name\": \"Design Game Architecture\",\n      \"task_description\": \"Create the overall architecture for the game, including main modules (game loop, input handling, rendering, collision detection, scoring, etc.), and select the technology stack.\",\n      \"project_id\": \"Snake Eat Egg Project\",\n      \"parent_task\": \"1\",\n      \"child_tasks\": [\n        \"4a\",\n        \"5\"\n      ],\n      \"dependent_task\": [\n        \"1\"\n      ],\n      \"estimated_effort_in_hours\": 12.0,\n      \"status_reason\": \"Architecture design is required before implementation.\",\n      \"outline_level\": 2,\n      \"assigned_to\": {\n        \"id\": \"R2\",\n        \"resource_name\": \"Game Architect\"\n      },\n      \"required_skills\": [\n        \"Game Design\",\n        \"Software Architecture\"\n      ],\n      \"is_milestone\": false,\n      \"deliverables\": [\n        \"Architecture Diagram\",\n        \"Technology Stack Decision\"\n      ],\n      \"status\": \"Not Started\"\n    },\n    {\n      \"id\": \"3\",\n      \"task_name\": \"Create Initial Art and Asset List\",\n      \"task_description\": \"Identify and list all required game assets (snake sprites, egg sprites, background, UI elements, sound effects, etc.) and create initial placeholder art or source free assets.\",\n      \"project_id\": \"Snake Eat Egg Project\",\n      \"parent_task\": \"1\",\n      \"child_tasks\": [\n        \"6a\",\n        \"6b\"\n      ],\n      \"dependent_task\": [\n        \"1\"\n      ],\n      \"estimated_effort_in_hours\": 8.0,\n      \"status_reason\": \"Assets are needed for early development and prototyping.\",\n      \"outline_level\": 2,\n      \"assigned_to\": {\n        \"id\": \"R3\",\n        \"resource_name\": \"Game Artist\"\n      },\n      \"required_skills\": [\n        \"Art Design\",\n        \"Asset Management\"\n      ],\n      \"is_milestone\": false,\n      \"deliverables\": [\n        \"Asset List\",\n        \"Placeholder Art\"\n      ],\n      \"status\": \"Not Started\"\n    },\n    {\n      \"id\": \"6\",\n      \"task_name\": \"Finalize Assets\",\n      \"task_description\": \"Aggregate task representing the completion of both final art and audio assets, serving as a parent for asset integration.\",\n      \"project_id\": \"Snake Eat Egg Project\",\n      \"parent_task\": \"3\",\n      \"child_tasks\": [\n        \"6a\",\n        \"6b\",\n        \"9\"\n      ],\n      \"dependent_task\": [\n        \"3\"\n      ],\n      \"estimated_effort_in_hours\": 0.0,\n      \"status_reason\": \"Virtual/aggregate node for asset readiness.\",\n      \"outline_level\": 3,\n      \"assigned_to\": {\n        \"id\": \"R4\",\n        \"resource_name\": \"Art/Audio Lead\"\n      },\n      \"required_skills\": [],\n      \"is_milestone\": false,\n      \"deliverables\": [],\n      \"status\": \"Not Started\"\n    },\n    {\n      \"id\": \"6a\",\n      \"task_name\": \"Produce Final Game Art Assets\",\n      \"task_description\": \"Produce or source the final versions of all game art assets based on the asset list (sprites, backgrounds, UI elements, etc.).\",\n      \"project_id\": \"Snake Eat Egg Project\",\n      \"parent_task\": \"6\",\n      \"child_tasks\": [],\n      \"dependent_task\": [\n        \"3\"\n      ],\n      \"estimated_effort_in_hours\": 12.0,\n      \"status_reason\": \"Final art assets are needed for game polish.\",\n      \"outline_level\": 4,\n      \"assigned_to\": {\n        \"id\": \"R3\",\n        \"resource_name\": \"Game Artist\"\n      },\n      \"required_skills\": [\n        \"Art Design\"\n      ],\n      \"is_milestone\": false,\n      \"deliverables\": [\n        \"Final Art Assets\"\n      ],\n      \"status\": \"Not Started\"\n    },\n    {\n      \"id\": \"6b\",\n      \"task_name\": \"Produce Final Audio Assets\",\n      \"task_description\": \"Produce or source the final versions of all game audio assets based on the asset list (sound effects, background music, etc.).\",\n      \"project_id\": \"Snake Eat Egg Project\",\n      \"parent_task\": \"6\",\n      \"child_tasks\": [],\n      \"dependent_task\": [\n        \"3\"\n      ],\n      \"estimated_effort_in_hours\": 12.0,\n      \"status_reason\": \"Final audio assets are needed for game polish.\",\n      \"outline_level\": 4,\n      \"assigned_to\": {\n        \"id\": \"R5\",\n        \"resource_name\": \"Audio Designer\"\n      },\n      \"required_skills\": [\n        \"Audio Production\"\n      ],\n      \"is_milestone\": false,\n      \"deliverables\": [\n        \"Final Audio Assets\"\n      ],\n      \"status\": \"Not Started\"\n    },\n    {\n      \"id\": \"9\",\n      \"task_name\": \"Integrate Art and Audio Assets into Game\",\n      \"task_description\": \"Replace placeholder assets with final art and audio in the game, ensuring correct display and playback. This task requires both art (6a) and audio (6b) assets to be completed. It is a child of the 'Finalize Assets' aggregate node for clarity in WBS.\",\n      \"project_id\": \"Snake Eat Egg Project\",\n      \"parent_task\": \"6\",\n      \"child_tasks\": [\n        \"10a\"\n      ],\n      \"dependent_task\": [\n        \"6a\",\n        \"6b\"\n      ],\n      \"estimated_effort_in_hours\": 8.0,\n      \"status_reason\": \"Integration of final assets is needed for a polished game.\",\n      \"outline_level\": 4,\n      \"assigned_to\": {\n        \"id\": \"R6\",\n        \"resource_name\": \"Game Developer\"\n      },\n      \"required_skills\": [\n        \"Programming\",\n        \"Asset Integration\"\n      ],\n      \"is_milestone\": false,\n      \"deliverables\": [\n        \"Integrated Assets\"\n      ],\n      \"status\": \"Not Started\"\n    },\n    {\n      \"id\": \"4a\",\n      \"task_name\": \"Implement Main Game Loop and Snake Movement\",\n      \"task_description\": \"Develop the main game loop and implement snake movement logic, including input handling and movement updates.\",\n      \"project_id\": \"Snake Eat Egg Project\",\n      \"parent_task\": \"2\",\n      \"child_tasks\": [\n        \"4b\"\n      ],\n      \"dependent_task\": [\n        \"2\"\n      ],\n      \"estimated_effort_in_hours\": 12.0,\n      \"status_reason\": \"Main game loop and movement are foundational for further mechanics.\",\n      \"outline_level\": 3,\n      \"assigned_to\": {\n        \"id\": \"R6\",\n        \"resource_name\": \"Game Developer\"\n      },\n      \"required_skills\": [\n        \"Programming\",\n        \"Game Development\"\n      ],\n      \"is_milestone\": false,\n      \"deliverables\": [\n        \"Game Loop Code\",\n        \"Snake Movement Implementation\"\n      ],\n      \"status\": \"Not Started\"\n    },\n    {\n      \"id\": \"4b\",\n      \"task_name\": \"Implement Egg Spawning and Collision Detection\",\n      \"task_description\": \"Implement logic for spawning eggs on the game field and detecting collisions between the snake and eggs or boundaries.\",\n      \"project_id\": \"Snake Eat Egg Project\",\n      \"parent_task\": \"4a\",\n      \"child_tasks\": [\n        \"7\"\n      ],\n      \"dependent_task\": [\n        \"4a\"\n      ],\n      \"estimated_effort_in_hours\": 12.0,\n      \"status_reason\": \"Egg spawning and collision detection are essential for gameplay progression.\",\n      \"outline_level\": 4,\n      \"assigned_to\": {\n        \"id\": \"R6\",\n        \"resource_name\": \"Game Developer\"\n      },\n      \"required_skills\": [\n        \"Programming\",\n        \"Game Development\"\n      ],\n      \"is_milestone\": false,\n      \"deliverables\": [\n        \"Egg Spawning Logic\",\n        \"Collision Detection Implementation\"\n      ],\n      \"status\": \"Not Started\"\n    },\n    {\n      \"id\": \"5\",\n      \"task_name\": \"Design User Interface Layout\",\n      \"task_description\": \"Design the layout for the game's user interface, including score display, start/restart buttons, and game over screen.\",\n      \"project_id\": \"Snake Eat Egg Project\",\n      \"parent_task\": \"2\",\n      \"child_tasks\": [\n        \"8\"\n      ],\n      \"dependent_task\": [\n        \"2\"\n      ],\n      \"estimated_effort_in_hours\": 8.0,\n      \"status_reason\": \"UI design is needed for user interaction.\",\n      \"outline_level\": 3,\n      \"assigned_to\": {\n        \"id\": \"R7\",\n        \"resource_name\": \"UI/UX Designer\"\n      },\n      \"required_skills\": [\n        \"UI/UX Design\"\n      ],\n      \"is_milestone\": false,\n      \"deliverables\": [\n        \"UI Layout Mockups\"\n      ],\n      \"status\": \"Not Started\"\n    },\n    {\n      \"id\": \"8\",\n      \"task_name\": \"Implement User Interface\",\n      \"task_description\": \"Develop the user interface based on the UI layout, including score display, buttons, and game over screen.\",\n      \"project_id\": \"Snake Eat Egg Project\",\n      \"parent_task\": \"5\",\n      \"child_tasks\": [\n        \"10a\"\n      ],\n      \"dependent_task\": [\n        \"5\"\n      ],\n      \"estimated_effort_in_hours\": 16.0,\n      \"status_reason\": \"UI implementation is required for user interaction.\",\n      \"outline_level\": 4,\n      \"assigned_to\": {\n        \"id\": \"R8\",\n        \"resource_name\": \"UI Developer\"\n      },\n      \"required_skills\": [\n        \"Programming\",\n        \"UI Development\"\n      ],\n      \"is_milestone\": false,\n      \"deliverables\": [\n        \"UI Implementation\"\n      ],\n      \"status\": \"Not Started\"\n    },\n    {\n      \"id\": \"7\",\n      \"task_name\": \"Implement Egg Consumption and Scoring System\",\n      \"task_description\": \"Develop the logic for the snake to consume eggs, update the score, and handle snake growth.\",\n      \"project_id\": \"Snake Eat Egg Project\",\n      \"parent_task\": \"4b\",\n      \"child_tasks\": [\n        \"10a\"\n      ],\n      \"dependent_task\": [\n        \"4b\"\n      ],\n      \"estimated_effort_in_hours\": 16.0,\n      \"status_reason\": \"Egg consumption and scoring are core gameplay features.\",\n      \"outline_level\": 5,\n      \"assigned_to\": {\n        \"id\": \"R6\",\n        \"resource_name\": \"Game Developer\"\n      },\n      \"required_skills\": [\n        \"Programming\"\n      ],\n      \"is_milestone\": false,\n      \"deliverables\": [\n        \"Egg Consumption Logic\",\n        \"Scoring System\"\n      ],\n      \"status\": \"Not Started\"\n    },\n    {\n      \"id\": \"10a\",\n      \"task_name\": \"Conduct Playtesting Sessions\",\n      \"task_description\": \"Organize and conduct playtesting sessions to gather feedback and identify bugs or gameplay issues.\",\n      \"project_id\": \"Snake Eat Egg Project\",\n      \"parent_task\": null,\n      \"child_tasks\": [\n        \"10b\"\n      ],\n      \"dependent_task\": [\n        \"7\",\n        \"8\",\n        \"9\"\n      ],\n      \"estimated_effort_in_hours\": 8.0,\n      \"status_reason\": \"Playtesting is essential to identify issues and gather feedback.\",\n      \"outline_level\": 5,\n      \"assigned_to\": {\n        \"id\": \"R9\",\n        \"resource_name\": \"QA Tester\"\n      },\n      \"required_skills\": [\n        \"Testing\"\n      ],\n      \"is_milestone\": false,\n      \"deliverables\": [\n        \"Playtest Reports\"\n      ],\n      \"status\": \"Not Started\"\n    },\n    {\n      \"id\": \"10b\",\n      \"task_name\": \"Compile and Prioritize Bug List\",\n      \"task_description\": \"Review playtesting feedback, compile a list of identified bugs and issues, and prioritize them for fixing.\",\n      \"project_id\": \"Snake Eat Egg Project\",\n      \"parent_task\": \"10a\",\n      \"child_tasks\": [\n        \"10c\"\n      ],\n      \"dependent_task\": [\n        \"10a\"\n      ],\n      \"estimated_effort_in_hours\": 4.0,\n      \"status_reason\": \"Prioritization ensures critical bugs are addressed first.\",\n      \"outline_level\": 6,\n      \"assigned_to\": {\n        \"id\": \"R10\",\n        \"resource_name\": \"QA Lead\"\n      },\n      \"required_skills\": [\n        \"Testing\",\n        \"Project Management\"\n      ],\n      \"is_milestone\": false,\n      \"deliverables\": [\n        \"Prioritized Bug List\"\n      ],\n      \"status\": \"Not Started\"\n    },\n    {\n      \"id\": \"10c\",\n      \"task_name\": \"Fix Identified Bugs\",\n      \"task_description\": \"Address and resolve the prioritized bugs and issues found during playtesting.\",\n      \"project_id\": \"Snake Eat Egg Project\",\n      \"parent_task\": \"10b\",\n      \"child_tasks\": [\n        \"11\"\n      ],\n      \"dependent_task\": [\n        \"10b\"\n      ],\n      \"estimated_effort_in_hours\": 12.0,\n      \"status_reason\": \"Bug fixing is required for a stable release.\",\n      \"outline_level\": 7,\n      \"assigned_to\": {\n        \"id\": \"R6\",\n        \"resource_name\": \"Game Developer\"\n      },\n      \"required_skills\": [\n        \"Debugging\",\n        \"Programming\"\n      ],\n      \"is_milestone\": false,\n      \"deliverables\": [\n        \"Fixed Issues\"\n      ],\n      \"status\": \"Not Started\"\n    },\n    {\n      \"id\": \"11\",\n      \"task_name\": \"Prepare Game Documentation and Release Package\",\n      \"task_description\": \"Write user documentation, developer notes, and prepare the game for release (packaging, versioning, etc.).\",\n      \"project_id\": \"Snake Eat Egg Project\",\n      \"parent_task\": \"10c\",\n      \"child_tasks\": null,\n      \"dependent_task\": [\n        \"10c\"\n      ],\n      \"estimated_effort_in_hours\": 8.0,\n      \"status_reason\": \"Documentation and packaging are required for project completion.\",\n      \"outline_level\": 8,\n      \"assigned_to\": {\n        \"id\": \"R11\",\n        \"resource_name\": \"Technical Writer\"\n      },\n      \"required_skills\": [\n        \"Documentation\",\n        \"Release Management\"\n      ],\n      \"is_milestone\": true,\n      \"deliverables\": [\n        \"User Guide\",\n        \"Release Package\"\n      ],\n      \"status\": \"Not Started\"\n    }\n  ],\n  \"project\": {\n    \"name\": \"Snake Eat Egg Project\",\n    \"description\": \"A project focused on developing a game or simulation where a snake eats eggs, likely inspired by the classic Snake game. The project may involve game design, programming, and testing of the snake's movement and egg consumption mechanics.\",\n    \"customer\": null,\n    \"estimated_start_date\": null,\n    \"estimated_finish_date\": null,\n    \"actual_start_date\": null,\n    \"actual_finish_date\": null,\n    \"estimated_effort_in_hours\": null,\n    \"effort_completed_in_hours\": null,\n    \"complete_percentage\": null,\n    \"estimated_total_cost\": null,\n    \"actual_total_cost\": null,\n    \"cost_consumption_percentage\": null,\n    \"project_type\": \"Other\",\n    \"sow_expriation_date\": null,\n    \"kick_off_partner_completed_and_minutes_published_date\": null,\n    \"kick_off_internal_completed_and_minutes_published_date\": null,\n    \"kick_off_customer_completed_and_minutes_published_date\": null,\n    \"owner\": null,\n    \"project_manager\": null,\n    \"project_coordinator\": null,\n    \"solution_architect\": null,\n    \"client_name\": null,\n    \"client_phone\": null,\n    \"client_address\": null,\n    \"client_email\": null,\n    \"supplier_name\": null,\n    \"supplier_phone\": null,\n    \"supplier_address\": null,\n    \"supplier_email\": null\n  }\n}"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "project_infos": {
+                    "task_list": [
+                        {
+                            "id": "1",
+                            "task_name": "Define Game Requirements and Scope",
+                            "task_description": "Gather and document the functional and non-functional requirements for the Snake Eat Egg game, including gameplay mechanics, user interface, platforms, and performance expectations.",
+                            "project_id": "Snake Eat Egg Project",
+                            "child_tasks": [
+                                "2",
+                                "3"
+                            ],
+                            "estimated_effort_in_hours": 8.0,
+                            "status_reason": "Initial step to ensure clear understanding of project goals.",
+                            "outline_level": 1,
+                            "assigned_to": {
+                                "id": "R1",
+                                "resource_name": "Business Analyst"
+                            },
+                            "required_skills": [
+                                "Requirements Analysis"
+                            ],
+                            "is_milestone": false,
+                            "deliverables": [
+                                "Requirements Document"
+                            ],
+                            "status": "Not Started"
+                        },
+                        {
+                            "id": "2",
+                            "task_name": "Design Game Architecture",
+                            "task_description": "Create the overall architecture for the game, including main modules (game loop, input handling, rendering, collision detection, scoring, etc.), and select the technology stack.",
+                            "project_id": "Snake Eat Egg Project",
+                            "parent_task": "1",
+                            "child_tasks": [
+                                "4a",
+                                "5"
+                            ],
+                            "dependent_task": [
+                                "1"
+                            ],
+                            "estimated_effort_in_hours": 12.0,
+                            "status_reason": "Architecture design is required before implementation.",
+                            "outline_level": 2,
+                            "assigned_to": {
+                                "id": "R2",
+                                "resource_name": "Game Architect"
+                            },
+                            "required_skills": [
+                                "Game Design",
+                                "Software Architecture"
+                            ],
+                            "is_milestone": false,
+                            "deliverables": [
+                                "Architecture Diagram",
+                                "Technology Stack Decision"
+                            ],
+                            "status": "Not Started"
+                        },
+                        {
+                            "id": "3",
+                            "task_name": "Create Initial Art and Asset List",
+                            "task_description": "Identify and list all required game assets (snake sprites, egg sprites, background, UI elements, sound effects, etc.) and create initial placeholder art or source free assets.",
+                            "project_id": "Snake Eat Egg Project",
+                            "parent_task": "1",
+                            "child_tasks": [
+                                "6a",
+                                "6b"
+                            ],
+                            "dependent_task": [
+                                "1"
+                            ],
+                            "estimated_effort_in_hours": 8.0,
+                            "status_reason": "Assets are needed for early development and prototyping.",
+                            "outline_level": 2,
+                            "assigned_to": {
+                                "id": "R3",
+                                "resource_name": "Game Artist"
+                            },
+                            "required_skills": [
+                                "Art Design",
+                                "Asset Management"
+                            ],
+                            "is_milestone": false,
+                            "deliverables": [
+                                "Asset List",
+                                "Placeholder Art"
+                            ],
+                            "status": "Not Started"
+                        },
+                        {
+                            "id": "6",
+                            "task_name": "Finalize Assets",
+                            "task_description": "Aggregate task representing the completion of both final art and audio assets, serving as a parent for asset integration.",
+                            "project_id": "Snake Eat Egg Project",
+                            "parent_task": "3",
+                            "child_tasks": [
+                                "6a",
+                                "6b",
+                                "9"
+                            ],
+                            "dependent_task": [
+                                "3"
+                            ],
+                            "estimated_effort_in_hours": 0.0,
+                            "status_reason": "Virtual/aggregate node for asset readiness.",
+                            "outline_level": 3,
+                            "assigned_to": {
+                                "id": "R4",
+                                "resource_name": "Art/Audio Lead"
+                            },
+                            "required_skills": [],
+                            "is_milestone": false,
+                            "deliverables": [],
+                            "status": "Not Started"
+                        },
+                        {
+                            "id": "6a",
+                            "task_name": "Produce Final Game Art Assets",
+                            "task_description": "Produce or source the final versions of all game art assets based on the asset list (sprites, backgrounds, UI elements, etc.).",
+                            "project_id": "Snake Eat Egg Project",
+                            "parent_task": "6",
+                            "child_tasks": [],
+                            "dependent_task": [
+                                "3"
+                            ],
+                            "estimated_effort_in_hours": 12.0,
+                            "status_reason": "Final art assets are needed for game polish.",
+                            "outline_level": 4,
+                            "assigned_to": {
+                                "id": "R3",
+                                "resource_name": "Game Artist"
+                            },
+                            "required_skills": [
+                                "Art Design"
+                            ],
+                            "is_milestone": false,
+                            "deliverables": [
+                                "Final Art Assets"
+                            ],
+                            "status": "Not Started"
+                        },
+                        {
+                            "id": "6b",
+                            "task_name": "Produce Final Audio Assets",
+                            "task_description": "Produce or source the final versions of all game audio assets based on the asset list (sound effects, background music, etc.).",
+                            "project_id": "Snake Eat Egg Project",
+                            "parent_task": "6",
+                            "child_tasks": [],
+                            "dependent_task": [
+                                "3"
+                            ],
+                            "estimated_effort_in_hours": 12.0,
+                            "status_reason": "Final audio assets are needed for game polish.",
+                            "outline_level": 4,
+                            "assigned_to": {
+                                "id": "R5",
+                                "resource_name": "Audio Designer"
+                            },
+                            "required_skills": [
+                                "Audio Production"
+                            ],
+                            "is_milestone": false,
+                            "deliverables": [
+                                "Final Audio Assets"
+                            ],
+                            "status": "Not Started"
+                        },
+                        {
+                            "id": "9",
+                            "task_name": "Integrate Art and Audio Assets into Game",
+                            "task_description": "Replace placeholder assets with final art and audio in the game, ensuring correct display and playback. This task requires both art (6a) and audio (6b) assets to be completed. It is a child of the 'Finalize Assets' aggregate node for clarity in WBS.",
+                            "project_id": "Snake Eat Egg Project",
+                            "parent_task": "6",
+                            "child_tasks": [
+                                "10a"
+                            ],
+                            "dependent_task": [
+                                "6a",
+                                "6b"
+                            ],
+                            "estimated_effort_in_hours": 8.0,
+                            "status_reason": "Integration of final assets is needed for a polished game.",
+                            "outline_level": 4,
+                            "assigned_to": {
+                                "id": "R6",
+                                "resource_name": "Game Developer"
+                            },
+                            "required_skills": [
+                                "Programming",
+                                "Asset Integration"
+                            ],
+                            "is_milestone": false,
+                            "deliverables": [
+                                "Integrated Assets"
+                            ],
+                            "status": "Not Started"
+                        },
+                        {
+                            "id": "4a",
+                            "task_name": "Implement Main Game Loop and Snake Movement",
+                            "task_description": "Develop the main game loop and implement snake movement logic, including input handling and movement updates.",
+                            "project_id": "Snake Eat Egg Project",
+                            "parent_task": "2",
+                            "child_tasks": [
+                                "4b"
+                            ],
+                            "dependent_task": [
+                                "2"
+                            ],
+                            "estimated_effort_in_hours": 12.0,
+                            "status_reason": "Main game loop and movement are foundational for further mechanics.",
+                            "outline_level": 3,
+                            "assigned_to": {
+                                "id": "R6",
+                                "resource_name": "Game Developer"
+                            },
+                            "required_skills": [
+                                "Programming",
+                                "Game Development"
+                            ],
+                            "is_milestone": false,
+                            "deliverables": [
+                                "Game Loop Code",
+                                "Snake Movement Implementation"
+                            ],
+                            "status": "Not Started"
+                        },
+                        {
+                            "id": "4b",
+                            "task_name": "Implement Egg Spawning and Collision Detection",
+                            "task_description": "Implement logic for spawning eggs on the game field and detecting collisions between the snake and eggs or boundaries.",
+                            "project_id": "Snake Eat Egg Project",
+                            "parent_task": "4a",
+                            "child_tasks": [
+                                "7"
+                            ],
+                            "dependent_task": [
+                                "4a"
+                            ],
+                            "estimated_effort_in_hours": 12.0,
+                            "status_reason": "Egg spawning and collision detection are essential for gameplay progression.",
+                            "outline_level": 4,
+                            "assigned_to": {
+                                "id": "R6",
+                                "resource_name": "Game Developer"
+                            },
+                            "required_skills": [
+                                "Programming",
+                                "Game Development"
+                            ],
+                            "is_milestone": false,
+                            "deliverables": [
+                                "Egg Spawning Logic",
+                                "Collision Detection Implementation"
+                            ],
+                            "status": "Not Started"
+                        },
+                        {
+                            "id": "5",
+                            "task_name": "Design User Interface Layout",
+                            "task_description": "Design the layout for the game's user interface, including score display, start/restart buttons, and game over screen.",
+                            "project_id": "Snake Eat Egg Project",
+                            "parent_task": "2",
+                            "child_tasks": [
+                                "8"
+                            ],
+                            "dependent_task": [
+                                "2"
+                            ],
+                            "estimated_effort_in_hours": 8.0,
+                            "status_reason": "UI design is needed for user interaction.",
+                            "outline_level": 3,
+                            "assigned_to": {
+                                "id": "R7",
+                                "resource_name": "UI/UX Designer"
+                            },
+                            "required_skills": [
+                                "UI/UX Design"
+                            ],
+                            "is_milestone": false,
+                            "deliverables": [
+                                "UI Layout Mockups"
+                            ],
+                            "status": "Not Started"
+                        },
+                        {
+                            "id": "8",
+                            "task_name": "Implement User Interface",
+                            "task_description": "Develop the user interface based on the UI layout, including score display, buttons, and game over screen.",
+                            "project_id": "Snake Eat Egg Project",
+                            "parent_task": "5",
+                            "child_tasks": [
+                                "10a"
+                            ],
+                            "dependent_task": [
+                                "5"
+                            ],
+                            "estimated_effort_in_hours": 16.0,
+                            "status_reason": "UI implementation is required for user interaction.",
+                            "outline_level": 4,
+                            "assigned_to": {
+                                "id": "R8",
+                                "resource_name": "UI Developer"
+                            },
+                            "required_skills": [
+                                "Programming",
+                                "UI Development"
+                            ],
+                            "is_milestone": false,
+                            "deliverables": [
+                                "UI Implementation"
+                            ],
+                            "status": "Not Started"
+                        },
+                        {
+                            "id": "7",
+                            "task_name": "Implement Egg Consumption and Scoring System",
+                            "task_description": "Develop the logic for the snake to consume eggs, update the score, and handle snake growth.",
+                            "project_id": "Snake Eat Egg Project",
+                            "parent_task": "4b",
+                            "child_tasks": [
+                                "10a"
+                            ],
+                            "dependent_task": [
+                                "4b"
+                            ],
+                            "estimated_effort_in_hours": 16.0,
+                            "status_reason": "Egg consumption and scoring are core gameplay features.",
+                            "outline_level": 5,
+                            "assigned_to": {
+                                "id": "R6",
+                                "resource_name": "Game Developer"
+                            },
+                            "required_skills": [
+                                "Programming"
+                            ],
+                            "is_milestone": false,
+                            "deliverables": [
+                                "Egg Consumption Logic",
+                                "Scoring System"
+                            ],
+                            "status": "Not Started"
+                        },
+                        {
+                            "id": "10a",
+                            "task_name": "Conduct Playtesting Sessions",
+                            "task_description": "Organize and conduct playtesting sessions to gather feedback and identify bugs or gameplay issues.",
+                            "project_id": "Snake Eat Egg Project",
+                            "child_tasks": [
+                                "10b"
+                            ],
+                            "dependent_task": [
+                                "7",
+                                "8",
+                                "9"
+                            ],
+                            "estimated_effort_in_hours": 8.0,
+                            "status_reason": "Playtesting is essential to identify issues and gather feedback.",
+                            "outline_level": 5,
+                            "assigned_to": {
+                                "id": "R9",
+                                "resource_name": "QA Tester"
+                            },
+                            "required_skills": [
+                                "Testing"
+                            ],
+                            "is_milestone": false,
+                            "deliverables": [
+                                "Playtest Reports"
+                            ],
+                            "status": "Not Started"
+                        },
+                        {
+                            "id": "10b",
+                            "task_name": "Compile and Prioritize Bug List",
+                            "task_description": "Review playtesting feedback, compile a list of identified bugs and issues, and prioritize them for fixing.",
+                            "project_id": "Snake Eat Egg Project",
+                            "parent_task": "10a",
+                            "child_tasks": [
+                                "10c"
+                            ],
+                            "dependent_task": [
+                                "10a"
+                            ],
+                            "estimated_effort_in_hours": 4.0,
+                            "status_reason": "Prioritization ensures critical bugs are addressed first.",
+                            "outline_level": 6,
+                            "assigned_to": {
+                                "id": "R10",
+                                "resource_name": "QA Lead"
+                            },
+                            "required_skills": [
+                                "Testing",
+                                "Project Management"
+                            ],
+                            "is_milestone": false,
+                            "deliverables": [
+                                "Prioritized Bug List"
+                            ],
+                            "status": "Not Started"
+                        },
+                        {
+                            "id": "10c",
+                            "task_name": "Fix Identified Bugs",
+                            "task_description": "Address and resolve the prioritized bugs and issues found during playtesting.",
+                            "project_id": "Snake Eat Egg Project",
+                            "parent_task": "10b",
+                            "child_tasks": [
+                                "11"
+                            ],
+                            "dependent_task": [
+                                "10b"
+                            ],
+                            "estimated_effort_in_hours": 12.0,
+                            "status_reason": "Bug fixing is required for a stable release.",
+                            "outline_level": 7,
+                            "assigned_to": {
+                                "id": "R6",
+                                "resource_name": "Game Developer"
+                            },
+                            "required_skills": [
+                                "Debugging",
+                                "Programming"
+                            ],
+                            "is_milestone": false,
+                            "deliverables": [
+                                "Fixed Issues"
+                            ],
+                            "status": "Not Started"
+                        },
+                        {
+                            "id": "11",
+                            "task_name": "Prepare Game Documentation and Release Package",
+                            "task_description": "Write user documentation, developer notes, and prepare the game for release (packaging, versioning, etc.).",
+                            "project_id": "Snake Eat Egg Project",
+                            "parent_task": "10c",
+                            "dependent_task": [
+                                "10c"
+                            ],
+                            "estimated_effort_in_hours": 8.0,
+                            "status_reason": "Documentation and packaging are required for project completion.",
+                            "outline_level": 8,
+                            "assigned_to": {
+                                "id": "R11",
+                                "resource_name": "Technical Writer"
+                            },
+                            "required_skills": [
+                                "Documentation",
+                                "Release Management"
+                            ],
+                            "is_milestone": true,
+                            "deliverables": [
+                                "User Guide",
+                                "Release Package"
+                            ],
+                            "status": "Not Started"
+                        }
+                    ],
+                    "project": {
+                        "name": "Snake Eat Egg Project",
+                        "description": "A project focused on developing a game or simulation where a snake eats eggs, likely inspired by the classic Snake game. The project may involve game design, programming, and testing of the snake's movement and egg consumption mechanics.",
+                        "project_type": "Other"
+                    }
+                }
+            }
+        }
+    }
+}

@@ -4,7 +4,7 @@ autogen-agentchat==0.5.3
 autogen-ext[openai,azure,web-surfer]==0.5.3
 autogenstudio==0.1.5
 markdown-pdf==1.7
-semantic-kernel==1.28.1
+semantic-kernel==1.32.2
 rich==14.0.0
 fastmcp==2.3.4
 opentelemetry-exporter-otlp-proto-grpc==1.33.0

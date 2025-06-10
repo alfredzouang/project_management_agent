@@ -22,7 +22,8 @@ const DatesSection = ({
   project,
   handleChange,
   processing,
-  mode
+  mode,
+  updatedFields = []
 }) => {
   // Helper to handle DatePicker value changes
   const handleDateChange = (name) => (value) => {
@@ -76,7 +77,8 @@ const DatesSection = ({
                       fullWidth: true,
                       variant: "outlined",
                       placeholder: field.placeholder,
-                      disabled: processing
+                      disabled: processing,
+                      className: updatedFields.includes(field.name) ? "input-updated" : ""
                     }
                   }}
                   format="YYYY-MM-DD"

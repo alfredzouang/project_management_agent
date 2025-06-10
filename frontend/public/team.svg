@@ -1,0 +1,9 @@
+<!-- Team/Group Icon SVG: Simple, clean, suitable for a project assistant team favicon -->
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="20" cy="24" r="8" fill="#4F8EF7"/>
+  <circle cx="44" cy="24" r="8" fill="#4F8EF7"/>
+  <circle cx="32" cy="40" r="10" fill="#4F8EF7"/>
+  <ellipse cx="20" cy="44" rx="12" ry="6" fill="#B3D1FF" opacity="0.7"/>
+  <ellipse cx="44" cy="44" rx="12" ry="6" fill="#B3D1FF" opacity="0.7"/>
+  <ellipse cx="32" cy="54" rx="16" ry="7" fill="#B3D1FF" opacity="0.5"/>
+</svg>

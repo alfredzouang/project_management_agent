@@ -94,7 +94,8 @@ const ProjectInformation = ({
   project,
   handleChange,
   processing,
-  mode
+  mode,
+  updatedFields = []
 }) => (
   <Accordion
     expanded={expanded}
@@ -130,12 +131,13 @@ const ProjectInformation = ({
           <TextField
             label="Name"
             name="name"
-            value={project["name"]}
+            value={project["name"] || ""}
             onChange={handleChange}
             fullWidth
             variant="outlined"
             placeholder="Enter project name..."
             disabled={processing}
+            className={updatedFields.includes("name") ? "input-updated" : ""}
           />
         </Grid>
         {/* Project Type */}
@@ -145,11 +147,12 @@ const ProjectInformation = ({
             <Select
               labelId="project-type-label"
               name="project_type"
-              value={project["project_type"]}
+              value={project["project_type"] || ""}
               onChange={handleChange}
               label="Project Type"
               displayEmpty
               MenuProps={{ PaperProps: { style: { maxHeight: 300 } } }}
+              className={updatedFields.includes("project_type") ? "input-updated" : ""}
               renderValue={(selected) =>
                 selected === "" || selected === undefined
                   ? <span style={{ color: "#aaa" }}>Select project type...</span>
@@ -172,12 +175,13 @@ const ProjectInformation = ({
           <TextField
             label="Owner"
             name="owner"
-            value={project["owner"]}
+            value={project["owner"] || ""}
             onChange={handleChange}
             fullWidth
             variant="outlined"
             placeholder="Enter owner..."
             disabled={processing}
+            className={updatedFields.includes("owner") ? "input-updated" : ""}
           />
         </Grid>
         {/* Project Manager */}
@@ -185,12 +189,13 @@ const ProjectInformation = ({
           <TextField
             label="Project Manager"
             name="project_manager"
-            value={project["project_manager"]}
+            value={project["project_manager"] || ""}
             onChange={handleChange}
             fullWidth
             variant="outlined"
             placeholder="Enter project manager..."
             disabled={processing}
+            className={updatedFields.includes("project_manager") ? "input-updated" : ""}
           />
         </Grid>
         {/* Project Coordinator */}
@@ -198,12 +203,13 @@ const ProjectInformation = ({
           <TextField
             label="Project Coordinator"
             name="project_coordinator"
-            value={project["project_coordinator"]}
+            value={project["project_coordinator"] || ""}
             onChange={handleChange}
             fullWidth
             variant="outlined"
             placeholder="Enter project coordinator..."
             disabled={processing}
+            className={updatedFields.includes("project_coordinator") ? "input-updated" : ""}
           />
         </Grid>
         {/* Solution Architect */}
@@ -211,12 +217,13 @@ const ProjectInformation = ({
           <TextField
             label="Solution Architect"
             name="solution_architect"
-            value={project["solution_architect"]}
+            value={project["solution_architect"] || ""}
             onChange={handleChange}
             fullWidth
             variant="outlined"
             placeholder="Enter solution architect..."
             disabled={processing}
+            className={updatedFields.includes("solution_architect") ? "input-updated" : ""}
           />
         </Grid>
         {/* Description field, aligned with last input in first row */}
@@ -224,7 +231,7 @@ const ProjectInformation = ({
           <TextField
             label="Description"
             name="description"
-            value={project["description"]}
+            value={project["description"] || ""}
             onChange={handleChange}
             multiline
             minRows={6}
@@ -233,6 +240,7 @@ const ProjectInformation = ({
             variant="outlined"
             placeholder="Enter project description..."
             disabled={processing}
+            className={updatedFields.includes("description") ? "input-updated" : ""}
           />
         </Grid>
       </Grid>

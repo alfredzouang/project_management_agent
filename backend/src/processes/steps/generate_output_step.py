@@ -15,7 +15,7 @@ from semantic_kernel.contents import ChatHistory
 from semantic_kernel.functions import kernel_function
 from semantic_kernel.processes.kernel_process import (KernelProcessStep,
                                                       KernelProcessStepContext,
-                                                      KernelProcessStepState)
+                                                      KernelProcessStepState, kernel_process_step_metadata)
 from semantic_kernel.agents import ChatCompletionAgent, ChatHistoryAgentThread
 from semantic_kernel.connectors.ai import FunctionChoiceBehavior
 from model.project_types import Project, ProjectTask, SOWDocument
@@ -34,12 +34,15 @@ class GenerateOutputState(BaseModel):
     task_list: List[ProjectTask] | None = None
     project: Project | None = None
     output: str | None = None
+    need_revision: bool | None = None
+    suggestion: str | None = None
     # sow: dict | None = None
 
 class OutputReviewResponse(BaseModel):
     need_revision: bool
     suggestion: str | None = None
 
+@kernel_process_step_metadata("GenerateOutputStep.V1")
 class GenerateOutputStep(KernelProcessStep[GenerateOutputState]):
 
     GENERATE_OUTPUT : ClassVar[str] = "GenerateOutputStep"
@@ -98,19 +101,44 @@ class GenerateOutputStep(KernelProcessStep[GenerateOutputState]):
             self.state.chat_history = ChatHistory(
                 system_message=self.system_prompt)
 
+    @staticmethod
+    def to_serializable(obj):
+        from pydantic import BaseModel
+        if isinstance(obj, BaseModel):
+            return obj.model_dump(mode="json", exclude_none=True)
+        elif isinstance(obj, dict):
+            return {k: GenerateOutputStep.to_serializable(v) for k, v in obj.items()}
+        elif isinstance(obj, list):
+            return [GenerateOutputStep.to_serializable(i) for i in obj]
+        elif isinstance(obj, tuple):
+            return tuple(GenerateOutputStep.to_serializable(i) for i in obj)
+        else:
+            return obj
+
     @kernel_function(name=Functions.GENERATE_OUTPUT.value)
     async def generate_output(self, context: KernelProcessStepContext, payload: dict, kernel: Annotated[Kernel | None, "The kernel", {"include_in_function_choices": False}] = None):
+        self._report_process_state("GenerateOutputStep.generate_output", "start", {"payload": payload})
         logger.info("Generating output...")
         task_list = payload.get("task_list", [])
         project = payload.get("project", None)
         if not task_list or not project:
+            self._report_process_state("GenerateOutputStep.generate_output", "error", {"error": "Task list and project are required."})
             raise ValueError("Task list and project are required.")
         self.state.task_list = task_list
         self.state.project = project
+        # Ensure Pydantic models are converted to dicts for JSON serialization
+        def to_dict(obj):
+            if isinstance(obj, list):
+                return [to_dict(item) for item in obj]
+            elif hasattr(obj, "dict"):
+                return obj.dict()
+            else:
+                return obj
+
         self.state.chat_history.add_user_message(
             json.dumps({
-                "task_list": task_list,
-                "project": project
+                "task_list": to_dict(task_list),
+                "project": to_dict(project)
             })
         )
         
@@ -119,9 +147,7 @@ class GenerateOutputStep(KernelProcessStep[GenerateOutputState]):
             type=ChatCompletionClientBase)
         assert isinstance(chat_service, ChatCompletionClientBase)
         assert isinstance(settings, AzureChatPromptExecutionSettings)
-        # settings.response_format = SOWDocument
         settings.function_choice_behavior = FunctionChoiceBehavior.Auto()
-        # settings.function_choice_behavior = FunctionChoiceBehavior.Required(filters={"included_plugins": ["sow_plugin"]})
         agent = ChatCompletionAgent(
             kernel=kernel,
             service=chat_service,
@@ -133,31 +159,19 @@ class GenerateOutputStep(KernelProcessStep[GenerateOutputState]):
         logger.info("thread: %s", thread)
         response = await agent.get_response(thread=thread)
         self.state.output = response.message.content
-        # formatted_response: SOWDocument = SOWDocument.model_validate_json(response.message.content)
-        # self.state.sow = formatted_response.model_dump()
         logger.warning("Agent response: %s", response.message.content)
-        # response: str = response.message.content
-        # if response.startswith("```markdown") and response.endswith("```"):
-        #     response = response[10:-3].strip()
-        # elif response.startswith("```") and response.endswith("```"):
-        #     response = response[3:-3].strip()
-        # elif response.startswith("```") and not response.endswith("```"):
-        #     response = response[3:].strip()
-        # elif not response.startswith("```") and response.endswith("```"):
-        #     response = response[:-3].strip()
-        # else:
-        #     response = response.strip()
-        
         self.state.chat_history.add_assistant_message(self.state.output)
-        # self.state.output = self.state.sow
 
-        await context.emit_event(process_event=self.OutputEvents.OUTPUT_GENERATED, data=payload)
+        await context.emit_event(process_event=self.OutputEvents.OUTPUT_GENERATED, data=GenerateOutputStep.to_serializable(payload))
+        self._report_process_state("GenerateOutputStep.generate_output", "end")
 
     @kernel_function(name=Functions.REVISE_OUTPUT.value)
     async def revise_output(self, context: KernelProcessStepContext, payload: dict, kernel: Annotated[Kernel | None, "The kernel", {"include_in_function_choices": False}] = None):
+        self._report_process_state("GenerateOutputStep.revise_output", "start", {"payload": payload})
         logger.info("Revise output...")
         suggestion = payload.get("suggestion", [])
         if not suggestion:
+            self._report_process_state("GenerateOutputStep.revise_output", "error", {"error": "Suggestion is required."})
             raise ValueError("Suggestion is required.")
         task_list = self.state.task_list
         project = self.state.project
@@ -186,7 +200,6 @@ class GenerateOutputStep(KernelProcessStep[GenerateOutputState]):
         settings.function_choice_behavior = FunctionChoiceBehavior.Auto(filters={"included_plugins": ["mermaid_plugin", "resource_plugin"]})
         settings.temperature = 0.0
         settings.max_tokens = 6000
-        # settings.response_format = SOWDocument
         agent = ChatCompletionAgent(
             kernel=kernel,
             service=chat_service,
@@ -198,31 +211,17 @@ class GenerateOutputStep(KernelProcessStep[GenerateOutputState]):
 
         response = await agent.get_response(thread=thread)
         logger.warning("Agent response: %s", response.message.content)
-        # response: str = response.message.content
-        # if response.startswith("```markdown") and response.endswith("```"):
-        #     response = response[10:-3].strip()
-        # elif response.startswith("```") and response.endswith("```"):
-        #     response = response[3:-3].strip()
-        # elif response.startswith("```") and not response.endswith("```"):
-        #     response = response[3:].strip()
-        # elif not response.startswith("```") and response.endswith("```"):
-        #     response = response[:-3].strip()
-        # else:
-        #     response = response.strip()
-        # formatted_response: SOWDocument = SOWDocument.model_validate_json(response.message.content)
-        
-        # self.state.output = formatted_response.model_dump()
-        # self.state.sow = formatted_response.model_dump()
         self.state.output = response.message.content
-        # self.state.sow = response.message.content
-        
-        await context.emit_event(process_event=self.OutputEvents.OUTPUT_REVISED, data=payload)
+        self._report_process_state("GenerateOutputStep.revise_output", "end")
+        await context.emit_event(process_event=self.OutputEvents.OUTPUT_REVISED, data=GenerateOutputStep.to_serializable(payload))
 
     @kernel_function(name=Functions.REVIEW_OUTPUT.value)
     async def review_output(self, context: KernelProcessStepContext, payload: dict, kernel: Annotated[Kernel | None, "The kernel", {"include_in_function_choices": False}] = None):
+        self._report_process_state("GenerateOutputStep.review_output", "start", {"payload": payload})
         logger.info("Reviewing output...")
         output_markdown = self.state.output
         if not output_markdown:
+            self._report_process_state("GenerateOutputStep.review_output", "error", {"error": "Review is required."})
             raise ValueError("Review is required.")
         self.state.chat_history.add_user_message(
             """
@@ -249,10 +248,8 @@ class GenerateOutputStep(KernelProcessStep[GenerateOutputState]):
         settings.temperature = 0.0
         settings.max_tokens = 2000
         settings.function_choice_behavior = FunctionChoiceBehavior.Auto(filters={"included_plugins": ["mermaid_plugin", "resource_plugin"]})
-        # settings.function_choice_behavior = FunctionChoiceBehavior.Required(auto_invoke=True,filters={"included_plugins": ["sow_plugin"]})
         agent = ChatCompletionAgent(
             kernel=kernel,
-            # service=chat_service,
             name = "ReviewOutputAgent",
             instructions= self.system_prompt,
             arguments=KernelArguments(settings=settings)
@@ -265,9 +262,13 @@ class GenerateOutputStep(KernelProcessStep[GenerateOutputState]):
         logger.info(f"Review response: {formatted_response.suggestion}")
 
         if formatted_response.need_revision:
+            self.state.need_revision = True
+            self.state.suggestion = formatted_response.suggestion
             await context.emit_event(process_event=self.OutputEvents.OUTPUT_REJECTED, data=formatted_response.model_dump())
+            self._report_process_state("GenerateOutputStep.review_output", "rejected", {"suggestion": self.state.suggestion, "need_revision": True})
         else:
-            # 动态生成输出路径
+            self.state.need_revision = False
+            self.state.suggestion = None
             logger.info(f"Final SOW document: {self.state.output}")
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             project: Project = Project.model_validate(self.state.project)
@@ -277,8 +278,9 @@ class GenerateOutputStep(KernelProcessStep[GenerateOutputState]):
             if not os.path.exists(output_path):
                 os.makedirs(output_path)
 
-            # 保存响应到文件
             output_file = os.path.join(output_path, "output.md")
             with open(output_file, 'w', encoding='utf-8') as f:
                 f.write(self.state.output)
             await context.emit_event(process_event=self.OutputEvents.OUTPUT_APPROVED, data=formatted_response.model_dump())
+            self._report_process_state("GenerateOutputStep.review_output", "approved", {"need_revision": False, "suggestion": self.state.suggestion})
+        self._report_process_state("GenerateOutputStep.review_output", "end", {"need_revision": self.state.need_revision, "suggestion": self.state.suggestion})

@@ -12,7 +12,7 @@ from semantic_kernel.agents import ChatCompletionAgent, ChatHistoryAgentThread
 from semantic_kernel.connectors.ai.open_ai import AzureChatPromptExecutionSettings
 from semantic_kernel.functions import kernel_function
 from semantic_kernel.processes.kernel_process import (
-    KernelProcessStep, KernelProcessStepContext, KernelProcessStepState)
+    KernelProcessStep, KernelProcessStepContext, KernelProcessStepState, kernel_process_step_metadata)
 from semantic_kernel.functions.kernel_arguments import KernelArguments
 from semantic_kernel.connectors.ai.chat_completion_client_base import \
     ChatCompletionClientBase
@@ -31,6 +31,7 @@ class AssignResourceState(BaseModel):
     chat_history: ChatHistory | None = None
     project_infos: AssignResourceResponse | None = None
 
+@kernel_process_step_metadata("AssignResourceStep.V1")
 class AssignResourceStep(KernelProcessStep[AssignResourceState]):
 
     state: AssignResourceState = Field(default_factory=AssignResourceState)
@@ -78,19 +79,21 @@ class AssignResourceStep(KernelProcessStep[AssignResourceState]):
 
     @kernel_function(name=Functions.ASSIGN_RESOURCE.value)
     async def assign_resources(self, context: KernelProcessStepContext,  payload: dict, kernel: Annotated[Kernel | None, "The kernel", {"include_in_function_choices": False}] = None) -> None:
+        self._report_process_state("AssignResourceStep.assign_resources", "start", {"payload": payload})
         project: Project = Project.model_validate(payload.get("project", None))
         if not project:
+            self._report_process_state("AssignResourceStep.assign_resources", "error", {"error": "Project is required."})
             raise ValueError("Project is required.")
         task_list: List[ProjectTask] = payload.get("task_list", [])
         if not task_list:
+            self._report_process_state("AssignResourceStep.assign_resources", "error", {"error": "Task list is required."})
             raise ValueError("Task list is required.")
         
         logger.info(f"Assigning resources to tasks for project: {project.name}")
 
-        
         self.state.project_infos.project = project
         self.state.project_infos.task_list = task_list
-        self.state.chat_history.add_user_message(json.dumps(self.state.project_infos.model_dump()))
+        self.state.chat_history.add_user_message(json.dumps(self.state.project_infos.model_dump(mode="json", exclude_none=True)))
 
         chat_service, settings = kernel.select_ai_service(type=ChatCompletionClientBase)
         assert isinstance(chat_service, ChatCompletionClientBase)
@@ -101,7 +104,6 @@ class AssignResourceStep(KernelProcessStep[AssignResourceState]):
         settings.max_tokens = 6000
 
         agent = ChatCompletionAgent(
-            # service=chat_service,
             kernel=kernel,
             name = "AssignResourcesAgent",
             instructions= self.system_prompt.format(
@@ -120,3 +122,4 @@ class AssignResourceStep(KernelProcessStep[AssignResourceState]):
         self.state.project_infos.task_list = task_list
 
         await context.emit_event(process_event=self.OutputEvents.RESOURCE_ASSIGNED, data=formatted_response.model_dump())
+        self._report_process_state("AssignResourceStep.assign_resources", "end")
