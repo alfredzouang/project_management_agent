@@ -140,15 +140,25 @@ flowchart TD
 
 ## Startup Commands
 
-**Backend:**
+To start the entire system (backend services and frontend dev server) with correct dependency order, use the provided `startup.sh` script from the project root:
+
 ```sh
-python backend/src/api.py
+chmod +x startup.sh
+./startup.sh
 ```
 
-**Frontend (in `frontend/` directory):**
-```sh
-npm run dev
-```
+This script will:
+- Set up the required `PYTHONPATH`
+- Start backend services (`sow_mcp_agent`, `resource_mcp`, `a2a_server`) in the background
+- Wait for each backend service to be ready before starting the API server
+- Launch the frontend development server in the foreground
+
+**Prerequisites:**  
+- Python 3.8+ and all backend dependencies installed (`pip install -r backend/requirements.txt`)
+- Node.js and frontend dependencies installed (`cd frontend && npm install`)
+- `nc` (netcat) installed for port readiness checks (available by default on most Unix systems)
+
+You can stop all services by pressing `Ctrl+C` in the terminal running the script.
 
 ---
 
