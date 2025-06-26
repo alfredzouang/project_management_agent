@@ -13,6 +13,29 @@ async function handleResponse(response) {
   return response.json();
 }
 
+/**
+ * 获取采购需求列表，支持多条件筛选和分页
+ * @param {Object} params - 筛选参数，如 { pr_code, pr_type, pr_title, pr_category, business_unit, skill, page, page_size }
+ * @returns {Promise<Object>} - { data, total, page, page_size }
+ */
+export async function getPurchaseRequirements(params = {}) {
+  const query = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== "") {
+      query.append(key, value);
+    }
+  });
+  let url = `${BASE_URL}/purchase-requirements?${query.toString()}`;
+  if (
+    typeof window !== "undefined" &&
+    (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")
+  ) {
+    url = `http://localhost:8000/api/purchase-requirements?${query.toString()}`;
+  }
+  const res = await fetch(url);
+  return handleResponse(res);
+}
+
 // Get all projects
 export async function getProjects() {
   const res = await fetch(`${BASE_URL}/projects`);
@@ -262,8 +285,91 @@ export async function startProcessWithStatusStream(projectData, onEvent) {
   };
 }
 
+/**
+ * Get all filter options for purchase requirements (PR Type, PR Category, Business Unit, Skill)
+ * @returns {Promise<Object>} - { pr_types: [], pr_categories: [], business_units: [], skills: [] }
+ */
+export async function getPurchaseRequirementFilters() {
+  let url = `${BASE_URL}/purchase-requirement-filters`;
+  if (
+    typeof window !== "undefined" &&
+    (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")
+  ) {
+    url = `http://localhost:8000/api/purchase-requirement-filters`;
+  }
+  const res = await fetch(url);
+  return handleResponse(res);
+}
+
+/**
+ * 获取单个采购需求详情
+ * @param {string} prCode - 采购需求编号
+ * @returns {Promise<Object>} - 采购需求详情
+ */
+export async function getConsultantByResumeNo(resumeNo) {
+  const url = `/api/consultant/${encodeURIComponent(resumeNo)}`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error("Failed to fetch consultant info");
+  return await res.json();
+}
+
+export async function getWorkExByItemNo(itemNo) {
+  const url = `/api/workexresume/${encodeURIComponent(itemNo)}`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error("Failed to fetch work experience info");
+  return await res.json();
+}
+
+export async function getPurchaseRequirement(prCode) {
+  let url = `${BASE_URL}/purchase-requirements/${encodeURIComponent(prCode)}`;
+  if (
+    typeof window !== "undefined" &&
+    (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")
+  ) {
+    url = `http://localhost:8000/api/purchase-requirements/${encodeURIComponent(prCode)}`;
+  }
+  const res = await fetch(url);
+  return handleResponse(res);
+}
+
+/**
+ * 获取指定采购需求下的所有简历
+ * @param {string} prCode
+ * @returns {Promise<Array>}
+ */
+export async function getResumesByPRCode(prCode) {
+  let url = `${BASE_URL}/purchase-requirements/${encodeURIComponent(prCode)}/resumes`;
+  if (
+    typeof window !== "undefined" &&
+    (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")
+  ) {
+    url = `http://localhost:8000/api/purchase-requirements/${encodeURIComponent(prCode)}/resumes`;
+  }
+  const res = await fetch(url);
+  return handleResponse(res);
+}
+
 // Example: generic request for other endpoints
 export async function apiRequest(path, options = {}) {
   const res = await fetch(`${BASE_URL}${path}`, options);
   return handleResponse(res);
+}
+
+/**
+ * Evaluate a purchase requirement and its resumes (calls backend mock API)
+ * @param {string} prCode
+ * @returns {Promise<{prCode: string, results: Array}>}
+ */
+export async function evaluatePurchaseRequirement(prCode) {
+  let url = `${BASE_URL}/purchase-requirements/${encodeURIComponent(prCode)}/evaluate`;
+  if (
+    typeof window !== "undefined" &&
+    (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")
+  ) {
+    url = `http://localhost:8000/api/purchase-requirements/${encodeURIComponent(prCode)}/evaluate`;
+  }
+  const res = await fetch(url);
+  if (!res.ok) throw new Error("Failed to evaluate purchase requirement");
+  const data = await res.json();
+  return data;
 }

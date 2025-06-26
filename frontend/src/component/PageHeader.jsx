@@ -42,14 +42,6 @@ function PageHeader({ mode, onToggleMode }) {
           Ask your AI team for help
         </Typography>
       </Box>
-      <IconButton
-        sx={{ ml: 2 }}
-        onClick={onToggleMode}
-        color="inherit"
-        title="Toggle dark/light mode"
-      >
-        {mode === "dark" ? <Brightness7 /> : <Brightness4 />}
-      </IconButton>
     </Box>
   );
 }

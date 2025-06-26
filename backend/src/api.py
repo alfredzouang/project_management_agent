@@ -1,6 +1,7 @@
 from datetime import date
 import os
 import logging
+import a2a
 from fastapi import FastAPI, HTTPException, UploadFile, File, Form
 from fastapi.responses import StreamingResponse
 import asyncio
@@ -11,8 +12,10 @@ from typing import Any, List
 from dotenv import load_dotenv
 from regex import D
 
+from backend.src.agents import purchase_requirement_evaluate_agent
 from model.project_types import Project
-
+from model.purchase_requirements_types import (
+    PurchaseRequirementEvaluationResponse, ResumeEvaluationResult)
 from utils.kernel_factory import create_kernel
 from semantic_kernel.agents import ChatCompletionAgent, ChatHistoryAgentThread
 from semantic_kernel.contents import ChatHistory, ChatHistoryTruncationReducer
@@ -45,6 +48,16 @@ from azure.ai.agents.models import (
 )
 from semantic_kernel.agents import AzureAIAgent, AzureAIAgentSettings, AzureAIAgentThread
 from azure.ai.agents.models import VectorStore
+from semantic_kernel.functions.kernel_function_decorator import kernel_function
+from semantic_kernel.agents.chat_completion.chat_completion_agent import ChatCompletionAgent, ChatHistoryAgentThread
+from semantic_kernel.connectors.ai.open_ai import AzureChatCompletion
+from semantic_kernel.contents.chat_message_content import ChatMessageContent
+from semantic_kernel.connectors.ai.open_ai import (
+    AzureChatCompletion,
+    OpenAIChatCompletion,
+    OpenAIChatPromptExecutionSettings,
+)
+from agents.purchase_requirement_evaluate_agent import PurchaseRequirementEvaluateAgent
 
 @asynccontextmanager
 async def lifespan(app):
@@ -88,6 +101,12 @@ load_dotenv(override=True)
 AZURE_AI_AGENT_ENDPOINT = os.getenv("AZURE_AI_AGENT_ENDPOINT")
 AZURE_AI_AGENT_KEY = os.getenv("AZURE_AI_AGENT_KEY")
 AZURE_AI_AGENT_PROJECT_ENDPOINT = os.getenv("AZURE_AI_AGENT_PROJECT_ENDPOINT", AZURE_AI_AGENT_ENDPOINT)
+AZURE_OPENAI_API_KEY = os.getenv("AZURE_OPENAI_API_KEY")
+AZURE_OPENAI_ENDPOINT = os.getenv("AZURE_OPENAI_ENDPOINT")
+AZURE_OPENAI_API_VERSION = os.getenv("AZURE_OPENAI_API_VERSION")
+AZURE_OPENAI_API_MODEL = os.getenv("AZURE_OPENAI_API_MODEL")
+AZURE_OPENAI_API_BASE = os.getenv("AZURE_OPENAI_API_BASE", AZURE_OPENAI_ENDPOINT)
+
 
 # Set up logging
 import sys
@@ -304,6 +323,332 @@ async def start_project_documentation_process(project: Project):
         await process_task  # Ensure process finishes
 
     return StreamingResponse(status_stream(), media_type="text/event-stream")
+
+from fastapi import Query
+import sqlite3
+
+# Global DB path for all endpoints
+DB_PATH = os.path.join(os.path.dirname(__file__), "../../db/purchase_consultant_db.db")
+
+@app.get("/api/purchase-requirement-filters")
+async def get_purchase_requirement_filters():
+    """
+    Get all unique filter values for PR Type, PR Category, Business Unit, Skill, Approval Status.
+    """
+    import sqlite3
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+
+    # PR Type
+    cursor.execute("SELECT DISTINCT [PR Type] FROM purchase_requirement WHERE [PR Type] IS NOT NULL AND [PR Type] != ''")
+    pr_types = [row[0] for row in cursor.fetchall()]
+
+    # PR Category
+    cursor.execute("SELECT DISTINCT [PR Category] FROM purchase_requirement WHERE [PR Category] IS NOT NULL AND [PR Category] != ''")
+    pr_categories = [row[0] for row in cursor.fetchall()]
+
+    # Business Unit (Requestor) (User)
+    cursor.execute("SELECT DISTINCT [Business Unit (Requestor) (User)] FROM purchase_requirement WHERE [Business Unit (Requestor) (User)] IS NOT NULL AND [Business Unit (Requestor) (User)] != ''")
+    business_units = [row[0] for row in cursor.fetchall()]
+
+    # Skill
+    cursor.execute("SELECT DISTINCT [Skill] FROM purchase_requirement WHERE [Skill] IS NOT NULL AND [Skill] != ''")
+    skills = [row[0] for row in cursor.fetchall()]
+
+    # Approval Status
+    cursor.execute("SELECT DISTINCT [Approval Status] FROM purchase_requirement WHERE [Approval Status] IS NOT NULL AND [Approval Status] != ''")
+    approval_statuses = [row[0] for row in cursor.fetchall()]
+
+    conn.close()
+    return {
+        "pr_types": pr_types,
+        "pr_categories": pr_categories,
+        "business_units": business_units,
+        "skills": skills,
+        "approval_statuses": approval_statuses
+    }
+
+@app.get("/api/purchase-requirements")
+async def get_purchase_requirements(
+    pr_code: str = Query(None, alias="pr_code"),
+    pr_type: str = Query(None, alias="pr_type"),
+    pr_title: str = Query(None, alias="pr_title"),
+    pr_category: str = Query(None, alias="pr_category"),
+    business_unit: str = Query(None, alias="business_unit"),
+    skill: str = Query(None, alias="skill"),
+    approval_status: str = Query(None, alias="approval_status"),
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100)
+):
+    """
+    查询采购需求列表，支持多条件筛选和分页。
+    """
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+
+    # 构建 SQL 查询
+    sql = "SELECT * FROM purchase_requirement WHERE 1=1"
+    params = []
+
+    if pr_code:
+        # 支持模糊搜索
+        if "%" in pr_code or "_" in pr_code:
+            sql += " AND [PR Code] LIKE ?"
+            params.append(pr_code)
+        else:
+            sql += " AND [PR Code] LIKE ?"
+            params.append(f"%{pr_code}%")
+    if pr_type:
+        sql += " AND [PR Type]=?"
+        params.append(pr_type)
+    if pr_title:
+        sql += " AND [PR Title] LIKE ?"
+        params.append(f"%{pr_title}%")
+    if pr_category:
+        sql += " AND [PR Category]=?"
+        params.append(pr_category)
+    if business_unit:
+        # 字段名为 Business Unit (Requestor) (User)
+        sql += " AND [Business Unit (Requestor) (User)]=?"
+        params.append(business_unit)
+    if skill:
+        # Skill 字段为 Skill，Skill Required (must to have)，Skill Required (nice to have) 三者之一包含即可
+        sql += " AND ([Skill] LIKE ? OR [Skill Required (must to have)] LIKE ? OR [Skill Required (nice to have)] LIKE ?)"
+        params.extend([f"%{skill}%"] * 3)
+
+    if approval_status:
+        sql += " AND [Approval Status]=?"
+        params.append(approval_status)
+
+    # 分页
+    sql += " ORDER BY [PR Code] DESC LIMIT ? OFFSET ?"
+    params.extend([page_size, (page - 1) * page_size])
+
+    cursor.execute(sql, params)
+    rows = cursor.fetchall()
+    result = [dict(row) for row in rows]
+
+    # 查询总数
+    count_sql = "SELECT COUNT(*) FROM purchase_requirement WHERE 1=1"
+    count_params = []
+    if pr_code:
+        # 支持模糊搜索
+        if "%" in pr_code or "_" in pr_code:
+            count_sql += " AND [PR Code] LIKE ?"
+            count_params.append(pr_code)
+        else:
+            count_sql += " AND [PR Code] LIKE ?"
+            count_params.append(f"%{pr_code}%")
+    if pr_type:
+        count_sql += " AND [PR Type]=?"
+        count_params.append(pr_type)
+    if pr_title:
+        count_sql += " AND [PR Title] LIKE ?"
+        count_params.append(f"%{pr_title}%")
+    if pr_category:
+        count_sql += " AND [PR Category]=?"
+        count_params.append(pr_category)
+    if business_unit:
+        count_sql += " AND [Business Unit (Requestor) (User)]=?"
+        count_params.append(business_unit)
+    if skill:
+        count_sql += " AND ([Skill] LIKE ? OR [Skill Required (must to have)] LIKE ? OR [Skill Required (nice to have)] LIKE ?)"
+        count_params.extend([f"%{skill}%"] * 3)
+    cursor.execute(count_sql, count_params)
+    total = cursor.fetchone()[0]
+
+    conn.close()
+    return {"data": result, "total": total, "page": page, "page_size": page_size}
+
+@app.get("/api/purchase-requirements/{pr_code}")
+async def get_purchase_requirement_detail(pr_code: str):
+    """
+    获取单个采购需求详情（通过 PR Code 精确查找）
+    """
+    import sqlite3
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM purchase_requirement WHERE [PR Code]=?", (pr_code,))
+    row = cursor.fetchone()
+    conn.close()
+    if row is None:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail="Not Found")
+    return dict(row)
+
+@app.get("/api/purchase-requirements/{pr_code}/resumes")
+async def get_resumes_by_pr_code(pr_code: str):
+    """
+    Get all resumes where resume.PR = pr_code
+    """
+    import sqlite3
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM resume WHERE [PR]=?", (pr_code,))
+    rows = cursor.fetchall()
+    conn.close()
+    return [dict(row) for row in rows]
+
+@app.get("/api/consultant/{resume_no}")
+async def get_consultant_by_resume_no(resume_no: str):
+    """
+    Get consultant info by resume_no
+    """
+    import sqlite3
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM consultant WHERE [Resume No.]=?", (resume_no,))
+    row = cursor.fetchone()
+    conn.close()
+    if row is None:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail="Not Found")
+    return dict(row)
+
+@app.get("/api/workexresume/{item_no}")
+async def get_workex_by_item_no(item_no: str):
+    """
+    Get work experience info by item_no
+    """
+    import sqlite3
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM workexresume WHERE [ItemNo]=?", (item_no,))
+    rows = cursor.fetchall()
+    conn.close()
+    return [dict(row) for row in rows]
+
+from fastapi import status
+from pydantic import BaseModel
+
+
+# Maintain chat history per context
+chat_history_store: dict[str, ChatHistory] = {}
+
+@app.get("/api/purchase-requirements/{pr_code}/evaluate", response_model=dict)
+async def evaluate_purchase_requirement(pr_code: str):
+    """
+    Evaluate a purchase requirement and its resumes by acting as an a2a_client, sending the request to a running a2a_server.
+    Returns: {"response": ...}
+    """
+    logger.info(f"Received evaluation request for PR Code: {pr_code}")
+
+    # 1. Query PR, resumes, consultants
+    import sqlite3
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+
+    # PR info
+    cursor.execute("SELECT * FROM purchase_requirement WHERE [PR Code]=?", (pr_code,))
+    pr_row = cursor.fetchone()
+    if not pr_row:
+        conn.close()
+        return {"response": {"error": f"PR Code {pr_code} not found"}}
+    pr_info = dict(pr_row)
+
+    # Resumes for this PR
+    cursor.execute("SELECT * FROM resume WHERE [PR]=? AND Status != 'Cancelled'", (pr_code,))
+    resume_rows = cursor.fetchall()
+    resumes = [dict(row) for row in resume_rows]
+
+    # Consultant info for each resume (join on consultant.Resume No. = resume.ItemNo)
+    consultant_map = {}
+    for resume in resumes:
+        item_no = resume.get("ItemNo")
+        if item_no:
+            cursor.execute("SELECT * FROM consultant WHERE [Resume No.]=?", (item_no,))
+            consultant_row = cursor.fetchone()
+            if consultant_row:
+                consultant_map[item_no] = dict(consultant_row)
+    conn.close()
+
+    # 2. Compose user_input string for the agent
+    import json
+    user_input = json.dumps({
+        "pr": pr_info,
+        "resumes": resumes,
+        "consultants": consultant_map
+    }, ensure_ascii=False)
+
+    context_id = f"pr_{pr_code}"
+    
+
+    try:
+        # Get or create ChatHistory for the context
+        chat_history = chat_history_store.get(context_id)
+        if chat_history is None:
+            chat_history = ChatHistory(
+                messages=[],
+            )
+            chat_history_store[context_id] = chat_history
+            logger.info(f"Created new ChatHistory for context ID: {context_id}")
+
+        # Add user input to chat history
+        logger.info(f"User input for evaluation: {user_input}")
+        chat_history.messages.append(ChatMessageContent(role="user", content=user_input))
+
+        purchase_requirement_evaluate_agent = PurchaseRequirementEvaluateAgent()
+
+        # Get response from the agent
+        response = await purchase_requirement_evaluate_agent.invoke(user_input=user_input, session_id=context_id)
+
+        # Add assistant response to chat history
+        import json
+        chat_history.messages.append(ChatMessageContent(role="assistant", content=json.dumps(response, ensure_ascii=False)))
+
+        logger.info(f"Purchase evaluation agent response: {response}")
+
+        import json
+        try:
+            parsed = json.loads(response)
+        except Exception:
+            parsed = {"raw": response}
+
+        # If parsed is a dict with resumeNo/itemNo/name/klevel/rating/comment, wrap as results
+        if (
+            isinstance(parsed, dict)
+            and any(k in parsed for k in ["resumeNo", "itemNo", "name", "klevel", "rating", "comment"])
+            and "results" not in parsed
+        ):
+            # Normalize pr_code to prCode
+            pr_code_val = parsed.get("prCode") or parsed.get("pr_code") or pr_code
+            # Remove pr_code/prCode from the result dict to avoid duplication
+            result_dict = dict(parsed)
+            result_dict.pop("pr_code", None)
+            result_dict.pop("prCode", None)
+            result_obj = {
+                "prCode": pr_code_val,
+                "results": [result_dict]
+            }
+            logger.info(f"API returning: {result_obj}")
+            return result_obj
+        # If already has prCode/results, return as is
+        if isinstance(parsed, dict) and "results" in parsed and "prCode" in parsed:
+            logger.info(f"API returning: {parsed}")
+            return parsed
+        # fallback: wrap as empty results
+        result_obj = {
+            "prCode": pr_code,
+            "results": [],
+            "raw": parsed
+        }
+        logger.info(f"API returning: {result_obj}")
+        return result_obj
+    except Exception as e:
+        logger.error(f"a2a_client error: {e}")
+        return {"response": {"error": str(e)}}
 
 if __name__ == "__main__":
     import uvicorn

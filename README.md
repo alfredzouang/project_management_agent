@@ -4,26 +4,73 @@
 
 ## Project Overview
 
-Project Management Agents is a multi-agent system designed to automate project management tasks. It transforms user-provided project descriptions into actionable tasks, assigns resources, generates project plans and Gantt charts, and produces project SOWs (Statements of Work). The system leverages AI and modular architecture to streamline complex project management scenarios.
+Project Management Agents is a multi-agent system designed to automate and streamline two primary scenarios:
+
+1. **Project Management**: Automates project creation, task planning, resource assignment, Gantt chart generation, and SOW (Statement of Work) document creation based on user input. Managed by a multi-agent system and a user-friendly interface.
+2. **Purchase Requirement (Resume Evaluation)**: Handles the evaluation of purchase requirements and associated resumes, leveraging dedicated agents and the A2A protocol for agent-to-agent communication, with backend APIs and modular frontend components/pages for workflow support.
 
 **Key Goals:**
 - Automate task creation, resource assignment, and plan generation.
 - Generate project SOWs and Gantt charts from user input.
-- Provide a user-friendly interface for project input and output visualization.
+- Evaluate purchase requirements and resumes, returning actionable results.
+- Provide a user-friendly interface for both project management and purchase requirement workflows.
 
 **User Experience:**
-- Intuitive frontend for entering project descriptions.
-- Easy access to generated plans, charts, and documents.
+- Intuitive frontend for entering project descriptions and purchase requirements.
+- Easy access to generated plans, charts, documents, and evaluation results.
 
 ---
 
 ## System Architecture
 
-The system is built with a modular, event-driven architecture, integrating AI services and plugins for enhanced automation.
+The system is built with a modular, event-driven architecture, integrating AI services and plugins for enhanced automation. It supports both project management and purchase requirement (resume evaluation) scenarios.
+
+```mermaid
+flowchart TD
+    User([User])
+    Frontend[/"Frontend (React Pages & Components)\\"/]
+    BackendAPI[/"Backend API (FastAPI)\\"/]
+    DB[(Database)]
+    subgraph ProjectManagement
+        PMAgent["Project Management Agents<br/>(Task Planning, Resource Assignment, SOW, Gantt)"]
+        Plugins["Plugins:<br/>- Mermaid<br/>- SOW<br/>- Resource MCP"]
+    end
+    subgraph PurchaseRequirement
+        PREAgent["Purchase Requirement Evaluation Agent"]
+        ResumeAgent["Resume Evaluation Agent"]
+        A2AServer["A2A Protocol Server"]
+    end
+
+    User --> Frontend
+    Frontend --> BackendAPI
+
+    %% Project Management scenario
+    BackendAPI -- "Project Management APIs" --> PMAgent
+    PMAgent -- "Uses" --> Plugins
+    PMAgent -- "Reads/Writes" --> DB
+    Plugins -- "Reads/Writes" --> DB
+
+    %% Purchase Requirement scenario
+    BackendAPI -- "Purchase Requirement APIs" --> PREAgent
+    PREAgent -- "A2A Protocol" --> A2AServer
+    A2AServer -- "Invokes" --> ResumeAgent
+    PREAgent -- "Reads/Writes" --> DB
+    ResumeAgent -- "Reads/Writes" --> DB
+
+    %% Shared
+    BackendAPI -- "Reads/Writes" --> DB
+```
 
 **Main Components:**
-- **Backend (Python):**
-  - `backend/src/main.py`: Initializes the project, integrates plugins, and manages Azure AI services.
+- **Frontend (React + Vite):**
+  - Modular pages and components for both scenarios.
+  - Communicates with backend APIs for data exchange.
+- **Backend (Python, FastAPI):**
+  - `backend/src/api.py`: Exposes endpoints for project management, purchase requirement evaluation, resume, workexresume, and consultant data.
+  - **Agents:**
+    - `purchase_requirement_evaluate_agent.py`: Evaluates purchase requirements and resumes.
+    - `resume_evaluate_agent/`: Provides resume evaluation and skill assessment.
+    - `a2a_server.py`: Hosts the resume evaluation agent using the A2A protocol.
   - **Plugins:** Extend functionality for diagram generation, SOW creation, and resource management.
     - `mermaid_plugin.py`: Generates Mermaid diagrams and Gantt charts.
     - `sow_plugin.py`: Produces SOW documents using AI and MailMerge.
@@ -31,10 +78,7 @@ The system is built with a modular, event-driven architecture, integrating AI se
     - `sow_mcp_agent.py`: Handles SOW documents with Semantic Kernel MCP.
   - **Processes:**
     - `project_kick_start_process.py`: Orchestrates the project lifecycle with event-driven steps.
-
-- **Frontend (React + Vite):**
-  - Provides a user interface for project input and output visualization.
-  - Communicates with backend APIs for data exchange.
+- **Database:** Stores project, resource, purchase requirement, resume, and evaluation data.
 
 **Architectural Patterns:**
 - Modular design for separation of concerns and maintainability.
@@ -107,7 +151,7 @@ npm run dev
 
 ## Example Output
 
-The system generates detailed task lists and Gantt charts for projects. Example output for a "SnakeEatEggsGameProject":
+The system generates detailed task lists, Gantt charts, and evaluation results for both scenarios. Example output for a "SnakeEatEggsGameProject":
 
 ### Project Description
 - **Project Name:** SnakeEatEggsGameProject
