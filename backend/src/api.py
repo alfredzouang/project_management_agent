@@ -336,23 +336,23 @@ async def get_purchase_requirement_filters():
     session = SessionLocal()
 
     pr_types = [row[0] for row in session.execute(
-        text("SELECT DISTINCT [PR Type] FROM purchase_requirement WHERE [PR Type] IS NOT NULL AND [PR Type] != ''")
+        text('SELECT DISTINCT "PR Type" FROM purchase_requirement WHERE "PR Type" IS NOT NULL AND "PR Type" != \'\'')
     )]
 
     pr_categories = [row[0] for row in session.execute(
-        text("SELECT DISTINCT [PR Category] FROM purchase_requirement WHERE [PR Category] IS NOT NULL AND [PR Category] != ''")
+        text('SELECT DISTINCT "PR Category" FROM purchase_requirement WHERE "PR Category" IS NOT NULL AND "PR Category" != \'\'')
     )]
 
     business_units = [row[0] for row in session.execute(
-        text("SELECT DISTINCT [Business Unit (Requestor) (User)] FROM purchase_requirement WHERE [Business Unit (Requestor) (User)] IS NOT NULL AND [Business Unit (Requestor) (User)] != ''")
+        text('SELECT DISTINCT "Business Unit (Requestor) (User)" FROM purchase_requirement WHERE "Business Unit (Requestor) (User)" IS NOT NULL AND "Business Unit (Requestor) (User)" != \'\'')
     )]
 
     skills = [row[0] for row in session.execute(
-        text("SELECT DISTINCT [Skill] FROM purchase_requirement WHERE [Skill] IS NOT NULL AND [Skill] != ''")
+        text('SELECT DISTINCT "Skill" FROM purchase_requirement WHERE "Skill" IS NOT NULL AND "Skill" != \'\'')
     )]
 
     approval_statuses = [row[0] for row in session.execute(
-        text("SELECT DISTINCT [Approval Status] FROM purchase_requirement WHERE [Approval Status] IS NOT NULL AND [Approval Status] != ''")
+        text('SELECT DISTINCT "Approval Status" FROM purchase_requirement WHERE "Approval Status" IS NOT NULL AND "Approval Status" != \'\'')
     )]
 
     session.close()
@@ -379,151 +379,128 @@ async def get_purchase_requirements(
     """
     查询采购需求列表，支持多条件筛选和分页。
     """
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-    cursor = conn.cursor()
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-    cursor = conn.cursor()
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-    cursor = conn.cursor()
-
-    # 构建 SQL 查询
-    sql = "SELECT * FROM purchase_requirement WHERE 1=1"
-    params = []
+    # Use SQLAlchemy session for DB access
+    session = SessionLocal()
+    # Build base query
+    base_query = "SELECT * FROM purchase_requirement WHERE 1=1"
+    params = {}
 
     if pr_code:
-        # 支持模糊搜索
         if "%" in pr_code or "_" in pr_code:
-            sql += " AND [PR Code] LIKE ?"
-            params.append(pr_code)
+            base_query += ' AND "PR Code" LIKE :pr_code'
+            params["pr_code"] = pr_code
         else:
-            sql += " AND [PR Code] LIKE ?"
-            params.append(f"%{pr_code}%")
+            base_query += ' AND "PR Code" LIKE :pr_code'
+            params["pr_code"] = f"%{pr_code}%"
     if pr_type:
-        sql += " AND [PR Type]=?"
-        params.append(pr_type)
+        base_query += ' AND "PR Type"=:pr_type'
+        params["pr_type"] = pr_type
     if pr_title:
-        sql += " AND [PR Title] LIKE ?"
-        params.append(f"%{pr_title}%")
+        base_query += ' AND "PR Title" LIKE :pr_title'
+        params["pr_title"] = f"%{pr_title}%"
     if pr_category:
-        sql += " AND [PR Category]=?"
-        params.append(pr_category)
+        base_query += ' AND "PR Category"=:pr_category'
+        params["pr_category"] = pr_category
     if business_unit:
-        # 字段名为 Business Unit (Requestor) (User)
-        sql += " AND [Business Unit (Requestor) (User)]=?"
-        params.append(business_unit)
+        base_query += ' AND "Business Unit (Requestor) (User)"=:business_unit'
+        params["business_unit"] = business_unit
     if skill:
-        # Skill 字段为 Skill，Skill Required (must to have)，Skill Required (nice to have) 三者之一包含即可
-        sql += " AND ([Skill] LIKE ? OR [Skill Required (must to have)] LIKE ? OR [Skill Required (nice to have)] LIKE ?)"
-        params.extend([f"%{skill}%"] * 3)
-
+        base_query += ' AND ("Skill" LIKE :skill OR "Skill Required (must to have)" LIKE :skill OR "Skill Required (nice to have)" LIKE :skill)'
+        params["skill"] = f"%{skill}%"
     if approval_status:
-        sql += " AND [Approval Status]=?"
-        params.append(approval_status)
+        base_query += ' AND "Approval Status"=:approval_status'
+        params["approval_status"] = approval_status
 
-    # 分页
-    sql += " ORDER BY [PR Code] DESC LIMIT ? OFFSET ?"
-    params.extend([page_size, (page - 1) * page_size])
+    # Pagination
+    base_query += ' ORDER BY "PR Code" DESC LIMIT :limit OFFSET :offset'
+    params["limit"] = page_size
+    params["offset"] = (page - 1) * page_size
 
-    cursor.execute(sql, params)
-    rows = cursor.fetchall()
-    result = [dict(row) for row in rows]
+    result = session.execute(text(base_query), params).mappings().all()
+    data = [dict(row) for row in result]
 
-    # 查询总数
-    count_sql = "SELECT COUNT(*) FROM purchase_requirement WHERE 1=1"
-    count_params = []
-    if pr_code:
-        # 支持模糊搜索
-        if "%" in pr_code or "_" in pr_code:
-            count_sql += " AND [PR Code] LIKE ?"
-            count_params.append(pr_code)
-        else:
-            count_sql += " AND [PR Code] LIKE ?"
-            count_params.append(f"%{pr_code}%")
-    if pr_type:
-        count_sql += " AND [PR Type]=?"
-        count_params.append(pr_type)
-    if pr_title:
-        count_sql += " AND [PR Title] LIKE ?"
-        count_params.append(f"%{pr_title}%")
-    if pr_category:
-        count_sql += " AND [PR Category]=?"
-        count_params.append(pr_category)
-    if business_unit:
-        count_sql += " AND [Business Unit (Requestor) (User)]=?"
-        count_params.append(business_unit)
-    if skill:
-        count_sql += " AND ([Skill] LIKE ? OR [Skill Required (must to have)] LIKE ? OR [Skill Required (nice to have)] LIKE ?)"
-        count_params.extend([f"%{skill}%"] * 3)
-    cursor.execute(count_sql, count_params)
-    total = cursor.fetchone()[0]
+    # Count query
+    count_query = 'SELECT COUNT(*) FROM purchase_requirement WHERE 1=1'
+    count_params = params.copy()
+    count_params.pop("limit", None)
+    count_params.pop("offset", None)
+    # Extract the filter portion for the count query
+    filter_sql = ""
+    if "AND" in base_query:
+        and_index = base_query.find("AND")
+        order_by_index = base_query.find("ORDER BY") if "ORDER BY" in base_query else len(base_query)
+        filter_sql = " " + base_query[and_index:order_by_index]
+    count_result = session.execute(text(count_query + filter_sql), count_params).scalar()
+    total = count_result if count_result is not None else 0
 
-    conn.close()
-    return {"data": result, "total": total, "page": page, "page_size": page_size}
+    session.close()
+    return {"data": data, "total": total, "page": page, "page_size": page_size}
 
 @app.get("/api/purchase-requirements/{pr_code}")
 async def get_purchase_requirement_detail(pr_code: str):
     """
     获取单个采购需求详情（通过 PR Code 精确查找）
     """
-    import sqlite3
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM purchase_requirement WHERE [PR Code]=?", (pr_code,))
-    row = cursor.fetchone()
-    conn.close()
-    if row is None:
-        from fastapi import HTTPException
-        raise HTTPException(status_code=404, detail="Not Found")
-    return dict(row)
+    session = SessionLocal()
+    try:
+        row = session.execute(
+            text('SELECT * FROM purchase_requirement WHERE "PR Code"=:pr_code'),
+            {"pr_code": pr_code}
+        ).mappings().fetchone()
+        if row is None:
+            from fastapi import HTTPException
+            raise HTTPException(status_code=404, detail="Not Found")
+        return dict(row)
+    finally:
+        session.close()
 
 @app.get("/api/purchase-requirements/{pr_code}/resumes")
 async def get_resumes_by_pr_code(pr_code: str):
     """
     Get all resumes where resume.PR = pr_code
     """
-    import sqlite3
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM resume WHERE [PR]=?", (pr_code,))
-    rows = cursor.fetchall()
-    conn.close()
-    return [dict(row) for row in rows]
+    session = SessionLocal()
+    try:
+        rows = session.execute(
+            text('SELECT * FROM resume WHERE "PR"=:pr_code'),
+            {"pr_code": pr_code}
+        ).mappings().all()
+        return [dict(row) for row in rows]
+    finally:
+        session.close()
 
 @app.get("/api/consultant/{resume_no}")
 async def get_consultant_by_resume_no(resume_no: str):
     """
     Get consultant info by resume_no
     """
-    import sqlite3
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM consultant WHERE [Resume No.]=?", (resume_no,))
-    row = cursor.fetchone()
-    conn.close()
-    if row is None:
-        from fastapi import HTTPException
-        raise HTTPException(status_code=404, detail="Not Found")
-    return dict(row)
+    session = SessionLocal()
+    try:
+        row = session.execute(
+            text('SELECT * FROM consultant WHERE "Resume No."=:resume_no'),
+            {"resume_no": resume_no}
+        ).mappings().fetchone()
+        if row is None:
+            from fastapi import HTTPException
+            raise HTTPException(status_code=404, detail="Not Found")
+        return dict(row)
+    finally:
+        session.close()
 
 @app.get("/api/workexresume/{item_no}")
 async def get_workex_by_item_no(item_no: str):
     """
     Get work experience info by item_no
     """
-    import sqlite3
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM workexresume WHERE [ItemNo]=?", (item_no,))
-    rows = cursor.fetchall()
-    conn.close()
-    return [dict(row) for row in rows]
+    session = SessionLocal()
+    try:
+        rows = session.execute(
+            text('SELECT * FROM workexresume WHERE "ItemNo"=:item_no'),
+            {"item_no": item_no}
+        ).fetchall()
+        return [dict(row) for row in rows]
+    finally:
+        session.close()
 
 from fastapi import status
 from pydantic import BaseModel
@@ -540,35 +517,35 @@ async def evaluate_purchase_requirement(pr_code: str):
     """
     logger.info(f"Received evaluation request for PR Code: {pr_code}")
 
-    # 1. Query PR, resumes, consultants
-    import sqlite3
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-    cursor = conn.cursor()
+    # 1. Query PR, resumes, consultants using SQLAlchemy
+    session = SessionLocal()
+    try:
+        pr_row = session.execute(
+            text('SELECT * FROM purchase_requirement WHERE "PR Code"=:pr_code'),
+            {"pr_code": pr_code}
+        ).mappings().fetchone()
+        if not pr_row:
+            return {"response": {"error": f"PR Code {pr_code} not found"}}
+        pr_info = dict(pr_row)
 
-    # PR info
-    cursor.execute("SELECT * FROM purchase_requirement WHERE [PR Code]=?", (pr_code,))
-    pr_row = cursor.fetchone()
-    if not pr_row:
-        conn.close()
-        return {"response": {"error": f"PR Code {pr_code} not found"}}
-    pr_info = dict(pr_row)
+        resume_rows = session.execute(
+            text('SELECT * FROM resume WHERE "PR"=:pr_code AND "Status" != \'Cancelled\''),
+            {"pr_code": pr_code}
+        ).mappings().all()
+        resumes = [dict(row) for row in resume_rows]
 
-    # Resumes for this PR
-    cursor.execute("SELECT * FROM resume WHERE [PR]=? AND Status != 'Cancelled'", (pr_code,))
-    resume_rows = cursor.fetchall()
-    resumes = [dict(row) for row in resume_rows]
-
-    # Consultant info for each resume (join on consultant.Resume No. = resume.ItemNo)
-    consultant_map = {}
-    for resume in resumes:
-        item_no = resume.get("ItemNo")
-        if item_no:
-            cursor.execute("SELECT * FROM consultant WHERE [Resume No.]=?", (item_no,))
-            consultant_row = cursor.fetchone()
-            if consultant_row:
-                consultant_map[item_no] = dict(consultant_row)
-    conn.close()
+        consultant_map = {}
+        for resume in resumes:
+            item_no = resume.get("ItemNo")
+            if item_no:
+                consultant_row = session.execute(
+                    text('SELECT * FROM consultant WHERE "Resume No."=:item_no'),
+                    {"item_no": item_no}
+                ).mappings().fetchone()
+                if consultant_row:
+                    consultant_map[item_no] = dict(consultant_row)
+    finally:
+        session.close()
 
     # 2. Compose user_input string for the agent
     import json
@@ -579,7 +556,6 @@ async def evaluate_purchase_requirement(pr_code: str):
     }, ensure_ascii=False)
 
     context_id = f"pr_{pr_code}"
-    
 
     try:
         # Get or create ChatHistory for the context
