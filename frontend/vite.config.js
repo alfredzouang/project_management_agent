@@ -8,5 +8,8 @@ export default defineConfig({
       '/api': 'http://localhost:8000'
     }
   },
+  build: {
+    outDir: '../backend/src/static'
+  },
   plugins: [react(), tailwindcss()],
 })

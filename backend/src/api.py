@@ -147,7 +147,7 @@ async def connect_plugins():
 
 from fastapi import Request
 
-@app.post("/project/create", response_model=ProjectResponse)
+@app.post("/api/project/create", response_model=ProjectResponse)
 async def create_project(
     messages: str = Form(...),
     file: UploadFile = File(None)
@@ -240,7 +240,7 @@ async def create_project(
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.post("/project/start")
+@app.post("/api/project/start")
 async def start_project_documentation_process(project: Project):
     """
     Start the project documentation process and stream status updates.
@@ -649,6 +649,24 @@ async def evaluate_purchase_requirement(pr_code: str):
     except Exception as e:
         logger.error(f"a2a_client error: {e}")
         return {"response": {"error": str(e)}}
+
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+
+# Serve static frontend files
+import pathlib
+static_dir = pathlib.Path(__file__).parent / "static"
+app.mount("/", StaticFiles(directory=static_dir, html=True), name="static")
+
+# SPA fallback: serve index.html for any non-API route
+@app.get("/{full_path:path}")
+async def spa_fallback(full_path: str):
+    if not full_path.startswith("api/"):
+        index_file = static_dir / "index.html"
+        if index_file.exists():
+            return FileResponse(index_file)
+    from fastapi import HTTPException
+    raise HTTPException(status_code=404, detail="Not Found")
 
 if __name__ == "__main__":
     import uvicorn

@@ -89,12 +89,12 @@ export async function deleteProject(id) {
  */
 export async function sendChatMessages(messages, file = null) {
   // Use absolute URL for local dev, relative for production
-  let url = "/project/create";
+  let url = "/api/project/create";
   if (
     typeof window !== "undefined" &&
     (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")
   ) {
-    url = "http://localhost:8000/project/create";
+    url = "http://localhost:8000/api/project/create";
   }
   const formData = new FormData();
   formData.append("messages", JSON.stringify(messages));
@@ -189,12 +189,12 @@ for (let line of lines) {
  */
 export async function startProcessWithStatusStream(projectData, onEvent) {
   // Use absolute URL for local dev, relative for production
-  let url = "/project/start";
+  let url = "/api/project/start";
   if (
     typeof window !== "undefined" &&
     (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")
   ) {
-    url = "http://localhost:8000/project/start";
+    url = "http://localhost:8000/api/project/start";
   }
   let res;
   try {
@@ -307,14 +307,26 @@ export async function getPurchaseRequirementFilters() {
  * @returns {Promise<Object>} - 采购需求详情
  */
 export async function getConsultantByResumeNo(resumeNo) {
-  const url = `/api/consultant/${encodeURIComponent(resumeNo)}`;
+  let url = `/api/consultant/${encodeURIComponent(resumeNo)}`;
+  if (
+    typeof window !== "undefined" &&
+    (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")
+  ) {
+    url = `http://localhost:8000/api/consultant/${encodeURIComponent(resumeNo)}`;
+  }
   const res = await fetch(url);
   if (!res.ok) throw new Error("Failed to fetch consultant info");
   return await res.json();
 }
 
 export async function getWorkExByItemNo(itemNo) {
-  const url = `/api/workexresume/${encodeURIComponent(itemNo)}`;
+  let url = `/api/workexresume/${encodeURIComponent(itemNo)}`;
+  if (
+    typeof window !== "undefined" &&
+    (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")
+  ) {
+    url = `http://localhost:8000/api/workexresume/${encodeURIComponent(itemNo)}`;
+  }
   const res = await fetch(url);
   if (!res.ok) throw new Error("Failed to fetch work experience info");
   return await res.json();
