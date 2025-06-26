@@ -295,10 +295,3 @@ docker run -p 8000:8000 project-management-agents
 - You can configure environment variables by passing `-e VAR_NAME=value` to `docker run` or by editing the `.env` file before building.
 
 ---
-
-## Screenshots
-
-Screen shot of Project Management Agents
-![Application Screenshot](images/image.png)
-Screen shot of Purchase Requirement Evaluation
-![Purchase Requirement Evaluation Screenshot](images/screen_shot_2.png)

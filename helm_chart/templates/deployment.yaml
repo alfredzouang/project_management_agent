@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "project-management-agents.fullname" . }}
+  labels:
+    app: {{ include "project-management-agents.name" . }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ include "project-management-agents.name" . }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "project-management-agents.name" . }}
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: 8000
+          envFrom:
+            - configMapRef:
+                name: {{ include "project-management-agents.fullname" . }}-env
+          volumeMounts:
+            {{- if .Values.storage.enabled }}
+            - name: data
+              mountPath: {{ .Values.storage.mountPath }}
+            {{- end }}
+      volumes:
+        {{- if .Values.storage.enabled }}
+        - name: data
+          persistentVolumeClaim:
+            claimName: {{ include "project-management-agents.fullname" . }}-pvc
+        {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector: {{ toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations: {{ toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity: {{ toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.resources }}
+      resources: {{ toYaml . | nindent 8 }}
+      {{- end }}

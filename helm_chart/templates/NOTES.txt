@@ -1,0 +1,21 @@
+Thank you for installing the Project Management Agents Helm chart!
+
+To access your application:
+
+  1. If you used the default ClusterIP service, run:
+     kubectl port-forward svc/{{ include "project-management-agents.fullname" . }} 8000:8000
+
+     Then open http://localhost:8000 in your browser.
+
+  2. If you set service.type=NodePort, find the node port with:
+     kubectl get svc {{ include "project-management-agents.fullname" . }}
+
+  3. If you set service.type=LoadBalancer, use the external IP assigned by your cloud provider.
+
+Persistent storage is mounted at {{ .Values.storage.mountPath }}.
+
+To customize environment variables, edit values.yaml under the "env" section.
+
+To upgrade or uninstall:
+  helm upgrade --install <release> ./helm_chart -n <namespace>
+  helm uninstall <release> -n <namespace>

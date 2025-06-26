@@ -1,40 +1,41 @@
-import sqlite3
-import json
 import os
+import json
+from db.models.base_model import SessionLocal
+from db.models.project_management_models import Resume, WorkexResume
 
-db_path = os.path.join(os.path.dirname(__file__), "../../../db/purchase_consultant_db.db")
-conn = sqlite3.connect(db_path)
-conn.row_factory = sqlite3.Row
-c = conn.cursor()
+def main():
+    session = SessionLocal()
+    requirement_no = "RN20240326000003_1"
 
-# 查询基础简历信息
-c.execute("""
-    SELECT * FROM resume WHERE RequirementNo = ?
-""", ("RN20240326000003_1",))
-resume_row = c.fetchone()
-if resume_row is None:
-    print(json.dumps({"error": "No resume found for RequirementNo=RN20240326000003_1"}))
-    exit(1)
-resume_dict = dict(resume_row)
+    # Query resume
+    resume_row = session.execute(
+        f"SELECT * FROM resume WHERE RequirementNo = :reqno",
+        {"reqno": requirement_no}
+    ).mappings().first()
+    if resume_row is None:
+        print(json.dumps({"error": f"No resume found for RequirementNo={requirement_no}"}))
+        exit(1)
+    resume_dict = dict(resume_row)
 
-# 查询工作经历
-c.execute("""
-    SELECT Company, JobTitle, StartDate, EndDate, Description
-    FROM workexresume
-    WHERE ItemNo = ?
-""", ("RN20240326000003_1",))
-workex_rows = c.fetchall()
-work_experiences = []
-for row in workex_rows:
-    work_experiences.append({
-        "Company": row["Company"],
-        "JobTitle": row["JobTitle"],
-        "StartDate": row["StartDate"],
-        "EndDate": row["EndDate"],
-        "Description": row["Description"]
-    })
+    # Query work experiences
+    workex_rows = session.execute(
+        f"SELECT Company, JobTitle, StartDate, EndDate, Description FROM workexresume WHERE ItemNo = :itemno",
+        {"itemno": requirement_no}
+    ).mappings().all()
+    work_experiences = []
+    for row in workex_rows:
+        work_experiences.append({
+            "Company": row["Company"],
+            "JobTitle": row["JobTitle"],
+            "StartDate": row["StartDate"],
+            "EndDate": row["EndDate"],
+            "Description": row["Description"]
+        })
 
-resume_dict["work_experiences"] = work_experiences
+    resume_dict["work_experiences"] = work_experiences
 
-print(json.dumps(resume_dict, ensure_ascii=False, indent=2))
-conn.close()
+    print(json.dumps(resume_dict, ensure_ascii=False, indent=2))
+    session.close()
+
+if __name__ == "__main__":
+    main()

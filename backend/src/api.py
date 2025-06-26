@@ -325,41 +325,37 @@ async def start_project_documentation_process(project: Project):
     return StreamingResponse(status_stream(), media_type="text/event-stream")
 
 from fastapi import Query
-import sqlite3
-
-# Global DB path for all endpoints
-DB_PATH = os.path.join(os.path.dirname(__file__), "../../db/purchase_consultant_db.db")
+from db.models.base_model import SessionLocal
+from sqlalchemy import text
 
 @app.get("/api/purchase-requirement-filters")
 async def get_purchase_requirement_filters():
     """
     Get all unique filter values for PR Type, PR Category, Business Unit, Skill, Approval Status.
     """
-    import sqlite3
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
+    session = SessionLocal()
 
-    # PR Type
-    cursor.execute("SELECT DISTINCT [PR Type] FROM purchase_requirement WHERE [PR Type] IS NOT NULL AND [PR Type] != ''")
-    pr_types = [row[0] for row in cursor.fetchall()]
+    pr_types = [row[0] for row in session.execute(
+        text("SELECT DISTINCT [PR Type] FROM purchase_requirement WHERE [PR Type] IS NOT NULL AND [PR Type] != ''")
+    )]
 
-    # PR Category
-    cursor.execute("SELECT DISTINCT [PR Category] FROM purchase_requirement WHERE [PR Category] IS NOT NULL AND [PR Category] != ''")
-    pr_categories = [row[0] for row in cursor.fetchall()]
+    pr_categories = [row[0] for row in session.execute(
+        text("SELECT DISTINCT [PR Category] FROM purchase_requirement WHERE [PR Category] IS NOT NULL AND [PR Category] != ''")
+    )]
 
-    # Business Unit (Requestor) (User)
-    cursor.execute("SELECT DISTINCT [Business Unit (Requestor) (User)] FROM purchase_requirement WHERE [Business Unit (Requestor) (User)] IS NOT NULL AND [Business Unit (Requestor) (User)] != ''")
-    business_units = [row[0] for row in cursor.fetchall()]
+    business_units = [row[0] for row in session.execute(
+        text("SELECT DISTINCT [Business Unit (Requestor) (User)] FROM purchase_requirement WHERE [Business Unit (Requestor) (User)] IS NOT NULL AND [Business Unit (Requestor) (User)] != ''")
+    )]
 
-    # Skill
-    cursor.execute("SELECT DISTINCT [Skill] FROM purchase_requirement WHERE [Skill] IS NOT NULL AND [Skill] != ''")
-    skills = [row[0] for row in cursor.fetchall()]
+    skills = [row[0] for row in session.execute(
+        text("SELECT DISTINCT [Skill] FROM purchase_requirement WHERE [Skill] IS NOT NULL AND [Skill] != ''")
+    )]
 
-    # Approval Status
-    cursor.execute("SELECT DISTINCT [Approval Status] FROM purchase_requirement WHERE [Approval Status] IS NOT NULL AND [Approval Status] != ''")
-    approval_statuses = [row[0] for row in cursor.fetchall()]
+    approval_statuses = [row[0] for row in session.execute(
+        text("SELECT DISTINCT [Approval Status] FROM purchase_requirement WHERE [Approval Status] IS NOT NULL AND [Approval Status] != ''")
+    )]
 
-    conn.close()
+    session.close()
     return {
         "pr_types": pr_types,
         "pr_categories": pr_categories,

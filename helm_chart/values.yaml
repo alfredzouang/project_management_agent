@@ -1,0 +1,64 @@
+# Default values for project-management-agents Helm chart.
+
+image:
+  repository: project-management-agents
+  tag: "latest"
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 8000
+
+env:
+  # Environment variables from backend/.env for reference
+  AZURE_OPENAI_API_BASE: "https://your-azure-openai-base/"
+  AZURE_OPENAI_API_KEY: "your-azure-openai-api-key"
+  AZURE_OPENAI_API_VERSION: "2024-10-21"
+  AZURE_OPENAI_API_MODEL: "gpt-4.1"
+  AZURE_DEPLOYMENT: "gpt-4.1"
+  AZURE_OPENAI_ENDPOINT: "https://your-azure-openai-endpoint/"
+  OUTPUT_PATH: "./output"
+  SEMANTICKERNEL_EXPERIMENTAL_GENAI_ENABLE_OTEL_DIAGNOSTICS: "true"
+  SEMANTICKERNEL_EXPERIMENTAL_GENAI_ENABLE_OTEL_DIAGNOSTICS_SENSITIVE: "true"
+  AZURE_OPENAI_CHAT_ENDPOINT: "https://your-azure-openai-chat-endpoint/"
+  AZURE_OPENAI_CHAT_KEY: "your-azure-openai-chat-key"
+  AZURE_AI_AGENT_ENDPOINT: "https://your-ai-agent-endpoint/"
+  AZURE_AI_AGENT_PROJECT_ENDPOINT: "https://your-ai-agent-project-endpoint/"
+  AZURE_AI_AGENT_MODEL_DEPLOYMENT_NAME: "gpt-4.1"
+  AZURE_AI_AGENT_KEY: "your-ai-agent-key"
+
+storage:
+  enabled: true
+  accessModes:
+    - ReadWriteOnce
+  size: 1Gi
+  storageClassName: ""
+  mountPath: /app/output
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts:
+    - host: chart-example.local
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
+
+resources: {}
+  # limits:
+  #   cpu: 500m
+  #   memory: 512Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}

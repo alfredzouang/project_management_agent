@@ -25,7 +25,7 @@ from semantic_kernel.contents import (
 )
 from semantic_kernel.functions import KernelArguments, kernel_function
 from rich.logging import RichHandler
-import sqlite3
+# Database access is handled via SQLAlchemy (SessionLocal, models)
 from semantic_kernel.agents import ConcurrentOrchestration
 from pydantic import BaseModel
 from model.purchase_requirements_types import (

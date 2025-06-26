@@ -24,7 +24,9 @@ from semantic_kernel.contents import (
 )
 from semantic_kernel.functions import KernelArguments, kernel_function
 from rich.logging import RichHandler
-import sqlite3
+from db.models.base_model import SessionLocal
+from db.models.project_management_models import Consultant, Resume, WorkexResume
+from sqlalchemy import text
 
 from sympy import Li
 
@@ -140,39 +142,38 @@ class ResumePlugin:
         ]
     ) -> dict:
         try:
-            db_path = os.path.join(os.path.dirname(__file__), "../../../../db/purchase_consultant_db.db")
-            logger.info(f"Connecting to database at {db_path}")
-            conn = sqlite3.connect(db_path)
-            conn.row_factory = sqlite3.Row
-            c = conn.cursor()
+            session = SessionLocal()
             logger.info(f"Retrieving resume data for PR Code: {pr_code}, Resume No.: {resume_no}")
+
             # 查询 purchase_requirement 基本信息
-            c.execute("""
-                SELECT * FROM purchase_requirement WHERE "PR Code" = ?
-            """, (pr_code,))
-            pr_row = c.fetchone()
+            pr_row = session.execute(
+                text('SELECT * FROM purchase_requirement WHERE "PR Code" = :pr_code'),
+                {"pr_code": pr_code}
+            ).mappings().first()
             if pr_row is None:
                 logger.info(json.dumps({"error": f"No purchase requirement found for PR Code={pr_code}"}))
                 pr_dict = {}
             else:
                 pr_dict = dict(pr_row)
             logger.info(f"Purchase Requirement data retrieved: {pr_dict}")
+
             # 查询 consultant 基本信息
-            c.execute("""
-                SELECT * FROM consultant WHERE "Resume No." = ?
-            """, (resume_no,))
-            consultant_row = c.fetchone()
+            consultant_row = session.execute(
+                text('SELECT * FROM consultant WHERE "Resume No." = :resume_no'),
+                {"resume_no": resume_no}
+            ).mappings().first()
             if consultant_row is None:
                 logger.info(json.dumps({"error": f"No consultant found for Resume No.={resume_no}"}))
                 consultant_dict = {}
             else:
                 consultant_dict = dict(consultant_row)
             logger.info(f"Consultant data retrieved: {consultant_dict}")
+
             # 查询 resume 信息
-            c.execute("""
-                SELECT * FROM resume WHERE ItemNo = ?
-            """, (resume_no,))
-            resume_row = c.fetchone()
+            resume_row = session.execute(
+                text('SELECT * FROM resume WHERE ItemNo = :resume_no'),
+                {"resume_no": resume_no}
+            ).mappings().first()
             if resume_row is None:
                 logger.info(json.dumps({"error": f"No resume found for ItemNo={resume_no}"}))
                 resume_dict = {}
@@ -181,12 +182,10 @@ class ResumePlugin:
                 resume_dict = dict(resume_row)
 
             # 查询所有工作经历
-            c.execute("""
-                SELECT Company, JobTitle, StartDate, EndDate, Description
-                FROM workexresume
-                WHERE ItemNo = ?
-            """, (resume_no,))
-            workex_rows = c.fetchall()
+            workex_rows = session.execute(
+                text('SELECT Company, JobTitle, StartDate, EndDate, Description FROM workexresume WHERE ItemNo = :resume_no'),
+                {"resume_no": resume_no}
+            ).mappings().all()
             work_experiences = []
             for row in workex_rows:
                 work_experiences.append({
@@ -205,7 +204,7 @@ class ResumePlugin:
                 "work_experiences": work_experiences
             }
             logger.info(json.dumps(result, ensure_ascii=False, indent=2))
-            conn.close()
+            session.close()
             return result
         except Exception as e:
             return f'Resume data failed to retrieve: {e!s}'
@@ -227,16 +226,14 @@ class SkillLevelPlugin:
         ]
     ) -> str:
         try:
-            db_path = os.path.join(os.path.dirname(__file__), "../../../../db/purchase_consultant_db.db")
-            logger.info(f"Connecting to database at {db_path} to retrieve skill levels for {skill_model_name}")
-            conn = sqlite3.connect(db_path)
-            conn.row_factory = sqlite3.Row
-            c = conn.cursor()
-
-            c.execute("""
-                SELECT Skill, Name, Range FROM active_rating_values WHERE Skill LIKE '%' || ? || '%' COLLATE NOCASE;
-            """, (skill_model_name,))
-            rows = c.fetchall()
+            session = SessionLocal()
+            logger.info(f"Retrieving skill levels for {skill_model_name}")
+            rows = session.execute(
+                text(
+                    "SELECT Skill, Name, Range FROM active_rating_values WHERE Skill LIKE :pattern COLLATE NOCASE"
+                ),
+                {"pattern": f"%{skill_model_name}%"}
+            ).mappings().all()
             if not rows:
                 return f'No skill level found for {skill_model_name}'
             skill_levels = []
@@ -246,7 +243,7 @@ class SkillLevelPlugin:
                     "Name": row["Name"],
                     "Range": row["Range"]
                 })
-            conn.close()
+            session.close()
             logger.info(f'Skill levels for {skill_model_name}: {skill_levels}')
             return json.dumps(skill_levels, ensure_ascii=False, indent=2)
         except Exception as e:
@@ -265,20 +262,16 @@ class PurchaseRequirementPlugin:
         ]
     ) -> dict:
         try:
-            db_path = os.path.join(os.path.dirname(__file__), "../../../../db/purchase_consultant_db.db")
-            logger.info(f"Connecting to database at {db_path} to retrieve purchase requirement data for {pr_code}")
-            conn = sqlite3.connect(db_path)
-            conn.row_factory = sqlite3.Row
-            c = conn.cursor()
-
-            c.execute("""
-                SELECT * FROM purchase_requirement WHERE "PR Code" = ?
-            """, (pr_code,))
-            row = c.fetchone()
+            session = SessionLocal()
+            logger.info(f"Retrieving purchase requirement data for {pr_code}")
+            row = session.execute(
+                text('SELECT * FROM purchase_requirement WHERE "PR Code" = :pr_code'),
+                {"pr_code": pr_code}
+            ).mappings().first()
             if row is None:
                 return f'No purchase requirement found for PR Code={pr_code}'
             result = dict(row)
-            conn.close()
+            session.close()
             logger.info(f'Purchase requirement data for {pr_code}: {result}')
             return result
         except Exception as e:
