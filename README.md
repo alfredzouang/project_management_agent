@@ -1,5 +1,78 @@
 # Project Management Agents
 
+## Helm Deployment
+
+Deploy this project to a Kubernetes cluster using the included Helm chart. This is the recommended way to run in production or on any K8s environment.
+
+### Prerequisites
+
+- Kubernetes cluster (local or cloud)
+- Helm 3.x installed ([Helm install guide](https://helm.sh/docs/intro/install/))
+
+### Install the chart
+
+```sh
+helm upgrade --install project-management-agents ./helm_chart -n <namespace> --create-namespace
+```
+
+### Configuration
+
+- All configuration is in `helm_chart/values.yaml`.
+- The `env` section matches the variables in `backend/.env`. Set your Azure/OpenAI/API keys and endpoints here.
+- Persistent storage is enabled by default and mounted at `/app/output`.
+- Ingress is supported and configurable via the `ingress` section (set `enabled: true` and configure hosts, paths, TLS, etc).
+
+### Example: Enable Ingress
+
+```yaml
+ingress:
+  enabled: true
+  hosts:
+    - host: your.domain.com
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls:
+    - secretName: your-tls-secret
+      hosts:
+        - your.domain.com
+```
+
+### Upgrade or uninstall
+
+```sh
+helm upgrade --install project-management-agents ./helm_chart -n <namespace>
+helm uninstall project-management-agents -n <namespace>
+```
+
+See `helm_chart/templates/NOTES.txt` for post-install instructions.
+
+## Docker Deployment
+
+### Prerequisites
+
+- Docker installed (https://docs.docker.com/get-docker/)
+
+### Build the Docker image
+
+```sh
+docker build -t project-management-agents .
+```
+
+### Run the application
+
+```sh
+docker run -p 8000:8000 project-management-agents
+```
+
+- The backend API will be available at http://localhost:8000/api
+- The frontend will be served at http://localhost:8000/
+- All API requests from the frontend are routed to the backend automatically.
+
+### Notes
+
+- The Docker image builds both the backend and frontend, and serves the frontend static files via the FastAPI backend.
+- You can configure environment variables by passing `-e VAR_NAME=value` to `docker run` or by editing the `.env` file before building.
 Screen shot of Project Management Agents
 ![Application Screenshot](images/image.png)
 Screen shot of Purchase Requirement Evaluation
