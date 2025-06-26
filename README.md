@@ -1,5 +1,12 @@
 # Project Management Agents
 
+## Screenshots
+
+Screen shot of Project Management Agents
+![Application Screenshot](images/image.png)
+Screen shot of Purchase Requirement Evaluation
+![Purchase Requirement Evaluation Screenshot](images/screen_shot_2.png)
+
 ## Project Overview
 
 Project Management Agents is a multi-agent system designed to automate and streamline two primary scenarios:
