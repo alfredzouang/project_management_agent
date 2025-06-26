@@ -1,6 +1,9 @@
 # Project Management Agents
 
+Screen shot of Project Management Agents
 ![Application Screenshot](images/image.png)
+Screen shot of Purchase Requirement Evaluation
+![Purchase Requirement Evaluation Screenshot](images/screen_shot_2.png)
 
 ## Project Overview
 
