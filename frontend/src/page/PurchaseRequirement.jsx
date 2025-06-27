@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from "react";
-import { Box, Typography, Paper, CircularProgress, Divider } from "@mui/material";
-import { useParams } from "react-router-dom";
+import { Box, Typography, Paper, CircularProgress, Divider, Button } from "@mui/material";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import { useParams, useNavigate } from "react-router-dom";
 import { getPurchaseRequirement } from "../api/api";
 import PurchaseRequirementDetails from "../component/PurchaseRequirementDetails";
 import ResumeListTable from "../component/ResumeListTable";
 
 function PurchaseRequirement() {
   const { prCode } = useParams();
+  const navigate = useNavigate();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -71,6 +73,13 @@ function PurchaseRequirement() {
           boxSizing: "border-box",
         }}
       >
+        <Button
+          startIcon={<ArrowBackIcon />}
+          onClick={() => navigate(-1)}
+          sx={{ mb: 2 }}
+        >
+          Go Back
+        </Button>
         <Typography variant="h4" fontWeight="bold" sx={{ mb: 2 }}>
           Purchase Requirement Details
         </Typography>
