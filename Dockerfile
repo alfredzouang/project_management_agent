@@ -10,10 +10,13 @@ RUN npm run build
 FROM python:3.11-slim
 
 # Install system dependencies
-RUN apt-get update && apt-get install -y netcat && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y netcat supervisor && rm -rf /var/lib/apt/lists/*
 
 # Set workdir
 WORKDIR /app
+
+# Create logs directory
+RUN mkdir -p /app/logs
 
 # Copy backend code
 COPY backend/ ./backend/
@@ -25,13 +28,16 @@ COPY --from=frontend-build /app/frontend/dist ./backend/src/static
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy startup and entrypoint scripts
+# Copy startup script and supervisord config
 COPY startup.sh ./
-COPY Dockerfile_entrypoint.sh ./entrypoint.sh
-RUN chmod +x startup.sh entrypoint.sh
+COPY supervisord.conf ./
+RUN chmod +x startup.sh
+
+# Set environment variable to indicate production (supervisor) mode
+ENV USE_SUPERVISOR=1
 
 # Expose only the backend API port (serves both API and frontend)
 EXPOSE 8000
 
 # Entrypoint
-ENTRYPOINT ["./entrypoint.sh"]
+ENTRYPOINT ["./startup.sh"]

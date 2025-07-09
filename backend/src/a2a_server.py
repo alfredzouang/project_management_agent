@@ -10,7 +10,7 @@ from a2a.types import AgentCapabilities, AgentCard, AgentSkill
 from agents.resume_evaluate_agent.agent_executor import SemanticKernelResumeAgentExecutor
 from dotenv import load_dotenv
 
-from backend.src.agents.resume_evaluate_agent import resume_evaluate_agent
+from agents.resume_evaluate_agent import resume_evaluate_agent
 from rich.logging import RichHandler
 
 logging.basicConfig(level=logging.INFO, handlers=[RichHandler()])
