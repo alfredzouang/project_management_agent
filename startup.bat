@@ -20,6 +20,13 @@ start "" python backend\src\api.py
 
 REM Change to frontend directory and run dev server (foreground)
 cd frontend
+
+REM Install frontend dependencies if node_modules does not exist
+if not exist node_modules (
+    echo Installing frontend dependencies...
+    npm install
+)
+
 npm run dev
 exit /b
 

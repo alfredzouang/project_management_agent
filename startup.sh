@@ -42,6 +42,13 @@ else
 
   # Change to frontend directory and start frontend dev server (runs in foreground)
   cd frontend
+
+  # Install frontend dependencies if node_modules does not exist
+  if [ ! -d "node_modules" ]; then
+    echo "Installing frontend dependencies..."
+    npm install
+  fi
+
   npm run dev
 
   # Optional: Uncomment the following line if you want to wait for all background processes to finish after npm run dev exits
